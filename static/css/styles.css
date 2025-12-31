@@ -3,10 +3,13 @@
     --text-dark: #0A1A2F;
 }
 
+html {
+  font-size: 14px; /* Default is usually 16px */
+}
 
 body {
     font-family: 'Montserrat', sans-serif;
-    /* background-color: #F2F4F7; */
+    /* zoom: 0.8; */
 }
 
 /* Navbar Styles */
