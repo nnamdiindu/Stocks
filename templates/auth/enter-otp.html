@@ -1,0 +1,41 @@
+{% extends "layouts/auth-base.html" %}
+{% block title %}Enter OTP{% endblock %}
+{% block content %}
+
+<!-- OTP Title -->
+<h1 class="mb-2 fw-bold text-center" style="font-size: 2rem; color: #212529;">Enter OTP</h1>
+<p class="text-muted mb-3 text-center" style="font-size: 0.95rem;">
+    We've sent a 6-digit code to <strong>st...@example.com</strong><br>
+    Enter it below to continue
+</p>
+
+<!-- Form -->
+<form>
+    <!-- OTP Input Boxes -->
+    <div class="d-flex justify-content-center gap-2 mb-3">
+        <input type="text" class="otp-input text-center" maxlength="1" id="otp1" />
+        <input type="text" class="otp-input text-center" maxlength="1" id="otp2" />
+        <input type="text" class="otp-input text-center" maxlength="1" id="otp3" />
+        <input type="text" class="otp-input text-center" maxlength="1" id="otp4" />
+        <input type="text" class="otp-input text-center" maxlength="1" id="otp5" />
+        <input type="text" class="otp-input text-center" maxlength="1" id="otp6" />
+    </div>
+
+    <!-- Resend OTP Timer -->
+    <p class="text-center mb-3" style="font-size: 0.9rem;">
+        Resend OTP in <span class="link-primary" id="timer">00:45</span>
+    </p>
+
+    <!-- Verify Button -->
+    <button type="submit" class="btn btn-primary w-100 mb-3 fw-semibold">Verify OTP</button>
+
+    <!-- Back to Login Link -->
+    <div class="text-center">
+        <a href="{{ url_for('sign_in') }}" class="link-primary">Back to login</a>
+    </div>
+</form>
+</div>
+</div>
+
+
+{% endblock %}
