@@ -199,7 +199,7 @@ body {
 .stocksco-hero-section {
     position: relative;
     background: linear-gradient(180deg, #484848 0%, #101011 100%);
-    min-height: 100vh;
+    /* min-height: 100vh; */
     color: white;
     overflow: hidden;
 }
