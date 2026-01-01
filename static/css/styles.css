@@ -655,6 +655,47 @@ body {
 }
 
 /* Testimonials Styles  */
+/* Scrolling Container Wrapper */
+.testimonials-scroll-wrapper {
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+
+/* Inner Container that moves */
+.testimonials-scroll-container {
+    display: flex;
+    gap: 1.5rem; 
+    animation: scrollLeft 60s linear infinite;
+    width: max-content; /* Container grows with content */
+}
+
+/* Pause on hover */
+.testimonials-scroll-container:hover {
+    animation-play-state: paused;
+}
+
+/* The animation */
+@keyframes scrollLeft {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* Individual card wrapper */
+.testimonial-scroll-item {
+    flex-shrink: 0; /* Prevents cards from shrinking */
+    width: 350px; /* Fixed width for consistency */
+}
+
+/* Performance optimization */
+.testimonials-scroll-container {
+    will-change: transform;
+}
+
 .testimonials-bg {
     background-color: #F2FEFF;
 }
