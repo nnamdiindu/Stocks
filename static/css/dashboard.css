@@ -144,7 +144,7 @@ body {
 }
 
 .main-content {
-    margin-left: 300px;
+    /* margin-left: 300px; */
     min-height: 100vh;
     padding: 20px 40px;
 }
