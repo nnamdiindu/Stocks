@@ -45,5 +45,9 @@ def create_new_password():
 def verify_otp():
     return render_template("auth/enter-otp.html")
 
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard/index.html")
+
 if __name__ == "__main__":
     app.run(debug=True)
