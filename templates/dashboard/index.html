@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +16,7 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
+
 <body>
     <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -184,10 +186,11 @@
                                 <stop offset="100%" style="stop-color:#1976d2;stop-opacity:0.05" />
                             </linearGradient>
                         </defs>
-                        <path d="M 0 150 Q 50 130, 100 140 T 200 120 T 300 80 T 400 90 T 500 70 T 600 90" 
-                              stroke="#1976d2" stroke-width="3" fill="none"/>
-                        <path d="M 0 150 Q 50 130, 100 140 T 200 120 T 300 80 T 400 90 T 500 70 T 600 90 L 600 200 L 0 200 Z" 
-                              fill="url(#gradient)"/>
+                        <path d="M 0 150 Q 50 130, 100 140 T 200 120 T 300 80 T 400 90 T 500 70 T 600 90"
+                            stroke="#1976d2" stroke-width="3" fill="none" />
+                        <path
+                            d="M 0 150 Q 50 130, 100 140 T 200 120 T 300 80 T 400 90 T 500 70 T 600 90 L 600 200 L 0 200 Z"
+                            fill="url(#gradient)" />
                     </svg>
                 </div>
             </div>
@@ -287,7 +290,8 @@
                         <div class="asset-value-label">Current Value</div>
                         <div class="asset-value">$203.65</div>
                         <svg class="asset-chart" viewBox="0 0 80 40">
-                            <path d="M 0 30 L 20 25 L 40 20 L 60 15 L 80 10" stroke="#059669" stroke-width="2" fill="none"/>
+                            <path d="M 0 30 L 20 25 L 40 20 L 60 15 L 80 10" stroke="#059669" stroke-width="2"
+                                fill="none" />
                         </svg>
                     </div>
 
@@ -303,7 +307,8 @@
                         <div class="asset-value-label">Current Value</div>
                         <div class="asset-value">$151.74</div>
                         <svg class="asset-chart" viewBox="0 0 80 40">
-                            <path d="M 0 10 L 20 15 L 40 20 L 60 25 L 80 30" stroke="#c026d3" stroke-width="2" fill="none"/>
+                            <path d="M 0 10 L 20 15 L 40 20 L 60 25 L 80 30" stroke="#c026d3" stroke-width="2"
+                                fill="none" />
                         </svg>
                     </div>
 
@@ -319,7 +324,8 @@
                         <div class="asset-value-label">Current Value</div>
                         <div class="asset-value">$177.90</div>
                         <svg class="asset-chart" viewBox="0 0 80 40">
-                            <path d="M 0 25 L 20 20 L 40 15 L 60 12 L 80 8" stroke="#ca8a04" stroke-width="2" fill="none"/>
+                            <path d="M 0 25 L 20 20 L 40 15 L 60 12 L 80 8" stroke="#ca8a04" stroke-width="2"
+                                fill="none" />
                         </svg>
                     </div>
 
@@ -335,7 +341,8 @@
                         <div class="asset-value-label">Current Value</div>
                         <div class="asset-value">$145.93</div>
                         <svg class="asset-chart" viewBox="0 0 80 40">
-                            <path d="M 0 28 L 20 22 L 40 18 L 60 12 L 80 8" stroke="#65a30d" stroke-width="2" fill="none"/>
+                            <path d="M 0 28 L 20 22 L 40 18 L 60 12 L 80 8" stroke="#65a30d" stroke-width="2"
+                                fill="none" />
                         </svg>
                     </div>
 
@@ -351,11 +358,13 @@
                         <div class="asset-value-label">Current Value</div>
                         <div class="asset-value">$75.40</div>
                         <svg class="asset-chart" viewBox="0 0 80 40">
-                            <path d="M 0 30 L 20 24 L 40 20 L 60 16 L 80 12" stroke="#db2777" stroke-width="2" fill="none"/>
+                            <path d="M 0 30 L 20 24 L 40 20 L 60 16 L 80 12" stroke="#db2777" stroke-width="2"
+                                fill="none" />
                         </svg>
                     </div>
                 </div>
-                <button class="scroll-btn right" onclick="document.querySelector('.assets-scroll').scrollBy({left: 200, behavior: 'smooth'})">
+                <button class="scroll-btn right"
+                    onclick="document.querySelector('.assets-scroll').scrollBy({left: 200, behavior: 'smooth'})">
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
@@ -365,8 +374,12 @@
         <div class="card">
             <div class="card-header">
                 <div class="card-title">Recent Activity</div>
-                <a href="#" style="color: var(--primary-blue); text-decoration: none; font-weight: 500; font-size: 14px;">View all</a>
+                <a href="#"
+                    style="color: var(--primary-blue); text-decoration: none; font-weight: 500; font-size: 14px;">View
+                    all</a>
             </div>
+
+            <!-- Desktop: Table View -->
             <table class="activity-table">
                 <thead>
                     <tr>
@@ -421,6 +434,119 @@
                     </tr>
                 </tbody>
             </table>
+
+            <!-- Mobile: Card View -->
+            <div class="activity-cards">
+                <!-- Card 1 -->
+                <div class="activity-card" onclick="this.classList.toggle('expanded')">
+                    <div class="activity-card-header">
+                        <span class="activity-card-type">Trade (Buy)</span>
+                        <span class="activity-card-amount amount-negative">-$75,000</span>
+                    </div>
+                    <div class="activity-card-footer">
+                        <span class="status-badge completed">Completed</span>
+                        <span class="activity-card-date">Today, 09:15 AM</span>
+                    </div>
+                    <div class="activity-card-details">
+                        <div class="activity-detail-row">
+                            <span class="activity-detail-label">Description:</span>
+                            <span class="activity-detail-value">Bought Apple (AAPL)</span>
+                        </div>
+                        <div class="activity-detail-row">
+                            <span class="activity-detail-label">Reference:</span>
+                            <span class="activity-detail-value">Order #TRX-98423</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="activity-card" onclick="this.classList.toggle('expanded')">
+                    <div class="activity-card-header">
+                        <span class="activity-card-type">Trade (Sell)</span>
+                        <span class="activity-card-amount amount-positive">+$32,000</span>
+                    </div>
+                    <div class="activity-card-footer">
+                        <span class="status-badge failed">Failed</span>
+                        <span class="activity-card-date">20-12-2025</span>
+                    </div>
+                    <div class="activity-card-details">
+                        <div class="activity-detail-row">
+                            <span class="activity-detail-label">Description:</span>
+                            <span class="activity-detail-value">Sold Tesla (TSLA)</span>
+                        </div>
+                        <div class="activity-detail-row">
+                            <span class="activity-detail-label">Reference:</span>
+                            <span class="activity-detail-value">Order #TRX-98410</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="activity-card" onclick="this.classList.toggle('expanded')">
+                    <div class="activity-card-header">
+                        <span class="activity-card-type">Deposit</span>
+                        <span class="activity-card-amount amount-positive">+$100,000</span>
+                    </div>
+                    <div class="activity-card-footer">
+                        <span class="status-badge completed">Completed</span>
+                        <span class="activity-card-date">20-12-2025</span>
+                    </div>
+                    <div class="activity-card-details">
+                        <div class="activity-detail-row">
+                            <span class="activity-detail-label">Description:</span>
+                            <span class="activity-detail-value">Wallet Funded via Bank Transfer</span>
+                        </div>
+                        <div class="activity-detail-row">
+                            <span class="activity-detail-label">Reference:</span>
+                            <span class="activity-detail-value">Ref #DEP-57211</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="activity-card" onclick="this.classList.toggle('expanded')">
+                    <div class="activity-card-header">
+                        <span class="activity-card-type">Withdrawal</span>
+                        <span class="activity-card-amount amount-negative">-$50,000</span>
+                    </div>
+                    <div class="activity-card-footer">
+                        <span class="status-badge pending">Pending</span>
+                        <span class="activity-card-date">20-12-2025</span>
+                    </div>
+                    <div class="activity-card-details">
+                        <div class="activity-detail-row">
+                            <span class="activity-detail-label">Description:</span>
+                            <span class="activity-detail-value">Withdrawal to GTBank ····4821</span>
+                        </div>
+                        <div class="activity-detail-row">
+                            <span class="activity-detail-label">Reference:</span>
+                            <span class="activity-detail-value">Ref #WTH-33109</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 5 -->
+                <div class="activity-card" onclick="this.classList.toggle('expanded')">
+                    <div class="activity-card-header">
+                        <span class="activity-card-type">Security</span>
+                        <span class="activity-card-amount">-</span>
+                    </div>
+                    <div class="activity-card-footer">
+                        <span class="status-badge alert">Alert</span>
+                        <span class="activity-card-date">20-12-2025</span>
+                    </div>
+                    <div class="activity-card-details">
+                        <div class="activity-detail-row">
+                            <span class="activity-detail-label">Description:</span>
+                            <span class="activity-detail-value">New Login Detected (Lagos, NG)</span>
+                        </div>
+                        <div class="activity-detail-row">
+                            <span class="activity-detail-label">Reference:</span>
+                            <span class="activity-detail-value">Session ID #SEC-771</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -431,10 +557,10 @@
         const sidebar = document.querySelector(".sidebar");
         const sidebarOverlay = document.getElementById("sidebarOverlay");
 
-        hamburgerBtn.addEventListener("click", function() {
+        hamburgerBtn.addEventListener("click", function () {
             sidebar.classList.toggle("mobile-open");
             sidebarOverlay.classList.toggle("active");
-            
+
             // Change icon
             const icon = this.querySelector("i");
             if (sidebar.classList.contains("mobile-open")) {
@@ -447,7 +573,7 @@
         });
 
         // Close sidebar when clicking overlay
-        sidebarOverlay.addEventListener("click", function() {
+        sidebarOverlay.addEventListener("click", function () {
             sidebar.classList.remove("mobile-open");
             sidebarOverlay.classList.remove("active");
             const icon = hamburgerBtn.querySelector("i");
@@ -457,7 +583,7 @@
 
         // Close sidebar when clicking a nav item on mobile
         document.querySelectorAll(".nav-item").forEach(item => {
-            item.addEventListener("click", function() {
+            item.addEventListener("click", function () {
                 if (window.innerWidth <= 768) {
                     sidebar.classList.remove("mobile-open");
                     sidebarOverlay.classList.remove("active");

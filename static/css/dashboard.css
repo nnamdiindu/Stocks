@@ -143,12 +143,6 @@ body {
     text-align: center;
 }
 
-.main-content {
-    /* margin-left: 300px; */
-    min-height: 100vh;
-    padding: 20px 40px;
-}
-
 .top-bar {
     display: flex;
     justify-content: space-between;
@@ -622,7 +616,7 @@ body {
     right: 0;
 }
 
-/* Recent Activity */
+/* Recent Activity - Desktop Table View */
 .activity-table {
     width: 100%;
     border-collapse: collapse;
@@ -649,6 +643,84 @@ body {
 
 .activity-table tbody tr:hover {
     background-color: #f8f9fa;
+}
+
+/* Mobile Card Layout for Activity */
+.activity-cards {
+    display: none;
+}
+
+.activity-card {
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+}
+
+.activity-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.activity-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.activity-card-type {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-dark);
+}
+
+.activity-card-amount {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.activity-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+
+.activity-card-date {
+    color: var(--text-gray);
+}
+
+.activity-card-details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.activity-card.expanded .activity-card-details {
+    max-height: 200px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+.activity-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+}
+
+.activity-detail-label {
+    color: var(--text-gray);
+    font-weight: 500;
+}
+
+.activity-detail-value {
+    color: var(--text-dark);
+    text-align: right;
 }
 
 .status-badge {
@@ -765,5 +837,14 @@ body {
 
     .user-info {
         display: none;
+    }
+
+    /* Switch to card layout on mobile */
+    .activity-table {
+        display: none;
+    }
+
+    .activity-cards {
+        display: block;
     }
 }
