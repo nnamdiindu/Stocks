@@ -11,19 +11,19 @@ def inject_now():
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("landing/index.html")
 
 @app.route("/about-us")
 def about_us():
-    return render_template("about-us.html")
+    return render_template("landing/about-us.html")
 
 @app.route("/features")
 def features():
-    return render_template("features.html")
+    return render_template("landing/features.html")
 
 @app.route("/contact-us")
 def contact_us():
-    return render_template("contact-us.html")
+    return render_template("landing/contact-us.html")
 
 @app.route("/sign-in")
 def sign_in():
@@ -47,7 +47,11 @@ def verify_otp():
 
 @app.route("/dashboard")
 def dashboard():
-    return render_template("dashboard/index.html")
+    return render_template("dashboard/dashboard.html")
+
+@app.route("/dashboard/portfolio")
+def portfolio():
+    return render_template("dashboard/portfolio.html")
 
 if __name__ == "__main__":
     app.run(debug=True)

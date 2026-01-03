@@ -147,7 +147,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
     background-color: #fff;
     padding: 16px 24px;
     border-radius: 8px;
@@ -228,7 +228,7 @@ body {
     border: 1px solid #ffe0b2;
     border-radius: 8px;
     padding: 16px 20px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
