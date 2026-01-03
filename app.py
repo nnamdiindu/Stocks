@@ -53,5 +53,33 @@ def dashboard():
 def portfolio():
     return render_template("dashboard/portfolio.html")
 
+@app.route("/dashboard/invest")
+def invest():
+    return render_template("dashboard/invest.html")
+
+@app.route("/dashboard/settings")
+def settings():
+    return render_template("dashboard/settings.html")
+
+@app.route("/dashboard/wallet")
+def wallet():
+    return render_template("dashboard/wallet.html")
+
+@app.route("/dashboard/insights")
+def insights():
+    return render_template("dashboard/insights.html")
+
+@app.route("/dashboard/notifications")
+def notifications():
+    return render_template("dashboard/notifications.html")
+
+@app.route("/dashboard/support")
+def support():
+    return render_template("dashboard/support.html")
+
+@app.route("/dashboard/referrals")
+def referrals():
+    return render_template("dashboard/referrals.html")
+
 if __name__ == "__main__":
     app.run(debug=True)
