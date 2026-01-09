@@ -1,0 +1,173 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/settings-kyc.css">{% endblock %}
+
+<!-- KYC Tab Content -->
+<div class="kyc-form">
+    <div class="form-row two-columns">
+        <div class="form-group">
+            <label class="form-label">First Name</label>
+            <div class="input-with-icon">
+                <i class="fas fa-user"></i>
+                <input type="text" class="form-input" placeholder="First Name">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Permanent Address</label>
+            <div class="input-with-icon">
+                <i class="fas fa-map-marker-alt"></i>
+                <input type="text" class="form-input" placeholder="Permanent Address">
+            </div>
+        </div>
+    </div>
+
+    <div class="form-row two-columns">
+        <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <div class="input-with-icon">
+                <i class="fas fa-user"></i>
+                <input type="text" class="form-input" placeholder="Last Name">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Marital Status</label>
+            <select class="form-select">
+                <option value="single" selected>Single</option>
+                <option value="married">Married</option>
+                <option value="divorced">Divorced</option>
+                <option value="widowed">Widowed</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-row two-columns">
+        <div class="form-group">
+            <label class="form-label">Email</label>
+            <div class="input-with-icon">
+                <i class="fas fa-envelope"></i>
+                <input type="email" class="form-input" placeholder="Email">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Date of Birth (DOB)</label>
+            <div class="input-with-icon">
+                <i class="fas fa-calendar"></i>
+                <input type="date" class="form-input date-input" placeholder="MM/DD/YYYY">
+            </div>
+        </div>
+    </div>
+
+    <div class="form-row two-columns">
+        <div class="form-group">
+            <label class="form-label">Mode of Identification</label>
+            <select class="form-select">
+                <option value="">Choose</option>
+                <option value="passport">International Passport</option>
+                <option value="drivers_license">Driver's License</option>
+                <option value="national_id">National ID Card</option>
+                <option value="voters_card">Voter's Card</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Identification Number</label>
+            <input type="text" class="form-input" placeholder="Enter ID number">
+        </div>
+    </div>
+
+    <!-- File Upload Section -->
+    <div class="upload-section">
+        <label class="form-label">Upload Identification Document</label>
+        <div class="file-upload-area" id="uploadArea">
+            <div class="upload-content">
+                <div class="upload-icon">
+                    <i class="fas fa-image"></i>
+                </div>
+                <p class="upload-text">
+                    Drop your Identification copy here, or select 
+                    <button type="button" class="upload-link" onclick="document.getElementById('fileInput').click()">
+                        Click to browse
+                    </button>
+                </p>
+                <input type="file" id="fileInput" accept="image/*,.pdf" style="display: none;" onchange="handleFileUpload(this)">
+            </div>
+            <button type="button" class="clear-file" id="clearBtn" style="display: none;" onclick="clearFile()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="fileName" class="file-name" style="display: none;"></div>
+    </div>
+
+    <button class="submit-btn">Submit Document</button>
+</div>
+
+<script>
+// Drag and drop functionality
+const uploadArea = document.getElementById('uploadArea');
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    uploadArea.addEventListener(eventName, preventDefaults, false);
+});
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+['dragenter', 'dragover'].forEach(eventName => {
+    uploadArea.addEventListener(eventName, () => {
+        uploadArea.classList.add('dragover');
+    }, false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+    uploadArea.addEventListener(eventName, () => {
+        uploadArea.classList.remove('dragover');
+    }, false);
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleFile(files[0]);
+    }
+});
+
+uploadArea.addEventListener('click', () => {
+    document.getElementById('fileInput').click();
+});
+
+function handleFileUpload(input) {
+    if (input.files && input.files[0]) {
+        handleFile(input.files[0]);
+    }
+}
+
+function handleFile(file) {
+    const fileName = document.getElementById('fileName');
+    const clearBtn = document.getElementById('clearBtn');
+    
+    fileName.textContent = file.name;
+    fileName.style.display = 'block';
+    clearBtn.style.display = 'flex';
+    
+    // Visual feedback
+    uploadArea.style.borderColor = '#059669';
+    uploadArea.style.background = '#ECFDF5';
+}
+
+function clearFile() {
+    const fileName = document.getElementById('fileName');
+    const clearBtn = document.getElementById('clearBtn');
+    const fileInput = document.getElementById('fileInput');
+    
+    fileInput.value = '';
+    fileName.style.display = 'none';
+    clearBtn.style.display = 'none';
+    
+    // Reset visual state
+    uploadArea.style.borderColor = '#D1D5DB';
+    uploadArea.style.background = '#FAFAFA';
+}
+</script>

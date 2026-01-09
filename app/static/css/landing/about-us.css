@@ -1,0 +1,83 @@
+/* .who-we-are-div {
+    margin: 0.625rem 0.725rem;
+} */
+
+.mission-vision-card {
+    background-color: white;
+    border-radius: 20px;
+    padding: 2rem;
+}
+
+.image-overlap {
+    position: relative;
+}
+
+.image-overlap img:first-child {
+    border-radius: 20px;
+    width: 100%;
+    height: auto;
+}
+
+.image-overlap img:last-child {
+    position: absolute;
+    bottom: -30px;
+    right: -30px;
+    border-radius: 20px;
+    width: 60%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #4B5563;
+}
+
+.stat-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #6B7280;
+    margin-top: 0.25rem;
+}
+
+.stat-description {
+    color: #6B7280;
+    font-size: 0.95rem;
+}
+
+.beliefs-image-container {
+    border-radius: 30px;
+    overflow: hidden;
+    height: 100%;
+}
+
+.beliefs-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.belief-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #06B6D4 0%, #22D3EE 100%);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.belief-item {
+    margin-bottom: 2.5rem;
+}
+
+.belief-item:last-child {
+    margin-bottom: 0;
+}
+
+.belief-div {
+    background-color: #F2FEFF;
+}
