@@ -1,5 +1,6 @@
 from flask import render_template, Blueprint
 from datetime import datetime
+from flask_login import current_user
 
 # Create blueprint
 main_bp = Blueprint('main', __name__)
@@ -26,7 +27,7 @@ def contact_us():
 
 @main_bp.route("/dashboard")
 def dashboard():
-    return render_template("dashboard/dashboard.html")
+    return render_template("dashboard/dashboard.html", current_user=current_user)
 
 @main_bp.route("/dashboard/portfolio")
 def portfolio():

@@ -63,3 +63,23 @@ body {
     border-color: #2E7FF3;
     box-shadow: 0 0 0 0.2rem rgba(46, 127, 243, 0.25);
 }
+
+/* # Flash styles  */
+
+.flash-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 400px;
+}
+
+.flash-container .alert {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}

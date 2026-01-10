@@ -22,11 +22,24 @@
                 <div class="w-100 px-4 px-md-5" style="max-width: 400px;">
                     <!-- Logo -->
                     <div class="mb-3 text-center">
-                        <a href="{{ url_for('main.index') }}"><img src="../../../static/images/StocksCo-logo.png" alt="StocksCo"
-                                style="max-width: 150px; height: auto;"></a>
+                        <a href="{{ url_for('main.index') }}"><img src="../../../static/images/StocksCo-logo.png"
+                                alt="StocksCo" style="max-width: 150px; height: auto;"></a>
                     </div>
 
                     <div style="padding-top: 10px;">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        <div class="flash-container">
+                            {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show"
+                                role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% endwith %}
                         {% block content %}{% endblock %}
                     </div>
 

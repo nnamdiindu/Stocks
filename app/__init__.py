@@ -2,6 +2,8 @@ import os
 from flask import Flask
 from flask_login import LoginManager
 from dotenv import load_dotenv
+from flask_migrate import Migrate
+
 from app.database import db, init_db
 
 load_dotenv()
@@ -28,6 +30,7 @@ def create_app():
 
     # Initialize database
     db.init_app(app)
+    migrate = Migrate(app, db)
 
     # Initialize Flask-Login
     login_manager.init_app(app)
@@ -65,7 +68,9 @@ def create_app():
     def internal_error(error):
         from flask import render_template
         db.session.rollback()
-        return render_template("errors/500.html"), 500
+        # return render_template("errors/500.html"), 500
+
+        return "Error"
 
     return app
 
