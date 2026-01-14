@@ -39,6 +39,8 @@ class User(UserMixin, db.Model):
     updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
     last_login: Mapped[datetime] = mapped_column(default=func.now())
 
+    verification_token: Mapped[str | None] = mapped_column(String(100), unique=True, nullable=True)
+    token_expiry: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     # Relationships
     # account = relationship("UserAccount", back_populates="user", uselist=False)
