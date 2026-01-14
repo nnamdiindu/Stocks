@@ -1,7 +1,7 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from flask_login import UserMixin
-from sqlalchemy import String, Boolean, DateTime, Integer, Enum, func, Date
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String, Boolean, DateTime, Integer, Enum, Date
+from sqlalchemy.orm import Mapped, mapped_column
 import enum
 from app import db
 
@@ -23,7 +23,7 @@ class User(UserMixin, db.Model):
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     phone_number: Mapped[str] = mapped_column(String(20))
-    date_of_birth: Mapped[Date] = mapped_column(Date)
+    date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     # Account status
     account_status: Mapped[str] = mapped_column(Enum(AccountStatus), default=AccountStatus.PENDING_VERIFICATION, index=True)
@@ -32,15 +32,26 @@ class User(UserMixin, db.Model):
     # KYC/Verification
     id_document_type: Mapped[str] = mapped_column(String(50), nullable=True)
     id_document_number: Mapped[str] = mapped_column(String(100), nullable=True)
-    verification_date: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
-    # Timestamps
-    created_at: Mapped[datetime] = mapped_column(default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
-    last_login: Mapped[datetime] = mapped_column(default=func.now())
-
+    # Email verification fields - ALL with timezone=True
     verification_token: Mapped[str | None] = mapped_column(String(100), unique=True, nullable=True)
-    token_expiry: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    token_expiry: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    verification_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    # Timestamps - ALL with timezone=True
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc)
+    )
+    last_login: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
 
     # Relationships
     # account = relationship("UserAccount", back_populates="user", uselist=False)
@@ -57,6 +68,11 @@ class User(UserMixin, db.Model):
     # referral_received = relationship("Referral", foreign_keys="Referral.referred_id", back_populates="referred_user",
     #                                  uselist=False)
     # rewards_earned = relationship("ReferralReward", foreign_keys="ReferralReward.user_id", back_populates="user")
+
+    # Property to check if account is active
+    # @property
+    # def is_active(self):
+    #     return self.account_status == AccountStatus.ACTIVE and self.is_verified
 
     def __repr__(self):
         return f"<User(user_id={self.id}, username='{self.username}', email='{self.email}')>"
