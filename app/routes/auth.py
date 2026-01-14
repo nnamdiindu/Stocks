@@ -6,8 +6,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app.database import db
 from app.models.user import User
 from app.utils.email import send_verification_email
-from app.utils.tokens import generate_verification_token, create_verification_token, get_user_by_email, get_user_by_id, verify_user, validate_verification_token
-
+from app.utils.tokens import generate_verification_token, create_verification_token, verify_user, validate_verification_token
+from app.utils.auth_helpers import get_user_by_id, get_user_by_email
 
 # Create blueprint
 auth_bp = Blueprint("auth", __name__)
@@ -75,7 +75,12 @@ def register():
         phone_number = request.form.get("phone_number")
 
         # Convert string to date object
-        date_of_birth = datetime.strptime(dob_string, "%Y-%m-%d").date()
+        try:
+            date_of_birth = datetime.strptime(dob_string, "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            flash("Invalid date of birth format.", "error")
+            return render_template("auth/register.html")
+
 
         # Validate input
         errors = []
@@ -137,8 +142,8 @@ def register():
             try:
                 send_verification_email(
                     user_email=new_user.email,
+                    user_name=new_user.first_name,
                     token=verification_token,
-                    user_name=new_user.first_name
                 )
 
                 # Store email in session for confirmation page
@@ -221,39 +226,37 @@ def resend_verification():
     try:
         # Generate new token
         token = create_verification_token(user, db)
-        send_verification_email(user_email=user.email, token=token, user_name=user.first_name)
+        send_verification_email(user_email=user.email, user_name=user.first_name, token=token)
         return jsonify({"message": "Verification email sent"}), 200
     except Exception as e:
         print(f"Error resending verification: {e}")
         return jsonify({"error": "Failed to send email. Please try again."}), 500
 
 
-# @auth_bp.route("/verify-email")
-# def verify_email():
-#     """Verify email with token"""
-#     token = request.args.get("token")
-#
-#     if not token:
-#         flash("No verification token provided", "error")
-#         return redirect(url_for('auth.register'))
-#
-#     # Use validation helper
-#     user, error = validate_verification_token(token, User, db)
-#
-#     if error:
-#         flash(error, "error")
-#         return redirect(url_for('auth.register'))
-#
-#     # Use verification helper
-#     verify_user(user, db)
-#
-#     session.pop("pending_email", None)
-#     session.pop("pending_user_id", None)
-#
-#     flash("Email verified successfully!", "success")
-#     return redirect(url_for('auth.login'))
-#
-#     return render_template("auth/verify-email.html")
+@auth_bp.route("/verify")
+def verify_email():
+    """Verify email with token"""
+    token = request.args.get("token")
+
+    if not token:
+        flash("No verification token provided", "error")
+        return redirect(url_for('auth.register'))
+
+    # Use validation helper
+    user, error = validate_verification_token(token, User, db)
+
+    if error:
+        flash(error, "error")
+        return redirect(url_for('auth.register'))
+
+    # Use verification helper
+    verify_user(user, db)
+
+    session.pop("pending_email", None)
+    session.pop("pending_user_id", None)
+
+    flash("Email verified successfully!", "success")
+    return redirect(url_for('auth.login'))
 
 
 
