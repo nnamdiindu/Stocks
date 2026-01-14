@@ -23,11 +23,21 @@ def validate_verification_token(token, User, db):
     if not user:
         return None, "Invalid verification token"
 
-    if not user.token_expiry or datetime.now(timezone.utc) > user.token_expiry:
+    if not user.token_expiry:
+        return None, "Invalid verification token"
+
+        # FIX: Handle both timezone-naive and timezone-aware datetimes
+    token_expiry = user.token_expiry
+
+    # If token_expiry is naive, make it aware (assume it's UTC)
+    if token_expiry.tzinfo is None or token_expiry.tzinfo.utcoffset(token_expiry) is None:
+        token_expiry = token_expiry.replace(tzinfo=timezone.utc)
+
+    # Now both are timezone-aware, comparison will work
+    if datetime.now(timezone.utc) > token_expiry:
         return None, "Verification token has expired"
 
     return user, None
-
 
 def verify_user(user, db):
     """Mark user as verified and clear token"""
@@ -36,15 +46,3 @@ def verify_user(user, db):
     user.token_expiry = None
     user.verification_date = datetime.now(timezone.utc)
     db.session.commit()
-
-
-def get_user_by_email(email, User, db):
-    """Get user by email"""
-    stmt = select(User).where(User.email == email)
-    return db.session.execute(stmt).scalar_one_or_none()
-
-
-def get_user_by_id(user_id, User, db):
-    """Get user by ID"""
-    stmt = select(User).where(User.id == user_id)
-    return db.session.execute(stmt).scalar_one_or_none()
