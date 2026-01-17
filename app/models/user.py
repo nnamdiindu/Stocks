@@ -38,6 +38,10 @@ class User(UserMixin, db.Model):
     token_expiry: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     verification_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # Password Reset field
+    reset_token: Mapped[str | None] = mapped_column(String(100), unique=True, nullable=True)
+    reset_token_expiry: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
     # Timestamps - ALL with timezone=True
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
