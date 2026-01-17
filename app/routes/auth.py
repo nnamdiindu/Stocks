@@ -4,16 +4,19 @@ from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import select
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.database import db
+from app import limiter
 from app.models.user import User
-from app.utils.email import send_verification_email
-from app.utils.tokens import generate_verification_token, create_verification_token, verify_user, validate_verification_token
-from app.utils.auth_helpers import get_user_by_id, get_user_by_email
+from app.utils.email import send_verification_email, send_reset_password_email
+from app.utils.tokens import (generate_verification_token, create_verification_token, verify_user,
+                              validate_verification_token, create_password_reset_token)
+from app.utils.auth_helpers import get_user_by_email
 
 # Create blueprint
 auth_bp = Blueprint("auth", __name__)
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 def login():
     # If user is already logged in, redirect to dashboard
     if current_user.is_authenticated:
@@ -59,6 +62,7 @@ def login():
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
+@limiter.limit("2 per day")
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
@@ -193,6 +197,7 @@ def email_sent():
 
 
 @auth_bp.route("/resend-verification", methods=["POST"])
+@limiter.limit("3 per 10 minutes")
 def resend_verification():
     # Try to get email from request or session
     if request.is_json:
@@ -269,8 +274,32 @@ def logout():
 
 
 
-@auth_bp.route("/forget-password")
+@auth_bp.route("/forget-password", methods=["GET", "POST"])
+@limiter.limit("3 per hour")
 def forget_password():
+    if request.method == "POST":
+        email = request.form.get("email")
+
+        if not email:
+            flash("Please enter your email address.", "error")
+            return render_template("auth/forget-password.html")
+
+        user = get_user_by_email(email, User, db)
+
+        if user:
+            try:
+                token = create_password_reset_token(user, db)
+                send_reset_password_email(
+                    user_email=user.email,
+                    user_name=user.first_name,
+                    token=token
+                )
+            except Exception as e:
+                print(f"Failed to send reset email: {e}")
+
+        flash("If that email exists, we've sent a password reset link.", "success")
+        return redirect(url_for("auth.login"))
+
     return render_template("auth/forget-password.html")
 
 
