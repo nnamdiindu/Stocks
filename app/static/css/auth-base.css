@@ -79,7 +79,15 @@ body {
     animation: slideIn 0.3s ease-out;
 }
 
+.flash-container .alert.slide-out {
+    animation: slideOut 0.5s ease-out forwards;
+}
+
 @keyframes slideIn {
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOut {
+    to { transform: translateY(-100px); opacity: 0; }
 }
