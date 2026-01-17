@@ -73,6 +73,19 @@
                 }
             });
         });
+
+        // Make flash message disappear after 5 seconds
+
+        document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.flash-container .alert');
+        
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.classList.add('slide-out');
+                setTimeout(() => alert.remove(), 500);
+            }, 5000); // Disappears after 5 seconds
+        });
+    });
     </script>
 </body>
 </html>
