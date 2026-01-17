@@ -1,9 +1,10 @@
 import os
-from flask import Flask
+from flask import Flask, flash
 from flask_login import LoginManager
 from dotenv import load_dotenv
 from flask_migrate import Migrate
-
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from app.database import db, init_db
 
 load_dotenv()
@@ -11,6 +12,12 @@ load_dotenv()
 # Initialize Flask-Login
 login_manager = LoginManager()
 
+# Initialize rate limiter
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
 
 def create_app():
     app = Flask(__name__)
@@ -31,12 +38,15 @@ def create_app():
     # Initialize database
     db.init_app(app)
     migrate = Migrate(app, db)
+    limiter.init_app(app)
 
     # Initialize Flask-Login
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"  # Redirect to /login/ if not authenticated
     login_manager.login_message = "Please log in to access this page."
     login_manager.login_message_category = "info"
+
+    app.limiter = limiter
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -69,8 +79,16 @@ def create_app():
         from flask import render_template
         db.session.rollback()
         # return render_template("errors/500.html"), 500
+        # Return actual 500 error page here
+        return "<h1>500 Error</h1>"
 
-        return "Error"
+    @app.errorhandler(429)
+    def ratelimit_handler(e):
+        flash("Too many requests. Please try again later.", "error")
+        # return render_template("errors/429.html"), 429
+        # Return actual 429 error page here
+        return "<h1>429 Error</h1>"
+
 
     return app
 
