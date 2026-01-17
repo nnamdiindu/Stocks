@@ -46,3 +46,10 @@ def verify_user(user, db):
     user.token_expiry = None
     user.verification_date = datetime.now(timezone.utc)
     db.session.commit()
+
+def create_password_reset_token(user, db):
+    """Create password reset token"""
+    user.reset_token = generate_verification_token()  # Reuse generator
+    user.reset_token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+    db.session.commit()
+    return user.reset_token
