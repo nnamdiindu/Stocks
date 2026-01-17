@@ -61,47 +61,18 @@
                     passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
                 }
 
-                // OTP Input Auto-focus
-                document.addEventListener('DOMContentLoaded', function () {
-                    const otpInputs = document.querySelectorAll('.otp-input');
 
-                    otpInputs.forEach((input, index) => {
-                        input.addEventListener('input', function (e) {
-                            // Only allow numbers
-                            this.value = this.value.replace(/[^0-9]/g, '');
-
-                            // Auto-focus next input
-                            if (this.value.length === 1 && index < otpInputs.length - 1) {
-                                otpInputs[index + 1].focus();
-                            }
-                        });
-
-                        // Handle backspace
-                        input.addEventListener('keydown', function (e) {
-                            if (e.key === 'Backspace' && !this.value && index > 0) {
-                                otpInputs[index - 1].focus();
-                            }
-                        });
-                    });
-
-                    // Countdown Timer
-                    let timeLeft = 45;
-                    const timerElement = document.getElementById('timer');
-
-                    if (timerElement) {
-                        const countdown = setInterval(() => {
-                            timeLeft--;
-                            const minutes = Math.floor(timeLeft / 60);
-                            const seconds = timeLeft % 60;
-                            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-                            if (timeLeft <= 0) {
-                                clearInterval(countdown);
-                                timerElement.innerHTML = '<a href="#" class="link-primary">Resend OTP</a>';
-                            }
-                        }, 1000);
-                    }
+                // Disappear flash messages after 5seconds 
+                document.addEventListener('DOMContentLoaded', function() {
+                const alerts = document.querySelectorAll('.flash-container .alert');
+                
+                alerts.forEach(alert => {
+                    setTimeout(() => {
+                        alert.classList.add('slide-out');
+                        setTimeout(() => alert.remove(), 500);
+                    }, 5000); // Disappears after 5 seconds
                 });
+            });
             </script>
 </body>
 
