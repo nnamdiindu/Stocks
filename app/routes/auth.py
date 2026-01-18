@@ -8,7 +8,8 @@ from app import limiter
 from app.models.user import User
 from app.utils.email import send_verification_email, send_reset_password_email
 from app.utils.tokens import (generate_verification_token, create_verification_token, verify_user,
-                              validate_verification_token, create_password_reset_token)
+                              validate_verification_token, create_password_reset_token, validate_reset_password_token,
+                              verify_reset_password)
 from app.utils.auth_helpers import get_user_by_email
 
 # Create blueprint
@@ -62,7 +63,7 @@ def login():
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
-@limiter.limit("2 per day")
+@limiter.limit("5 per day")
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
@@ -240,7 +241,6 @@ def resend_verification():
 
 @auth_bp.route("/verify")
 def verify_email():
-    """Verify email with token"""
     token = request.args.get("token")
 
     if not token:
@@ -263,6 +263,50 @@ def verify_email():
     flash("Email verified successfully!", "success")
     return redirect(url_for('auth.login'))
 
+@auth_bp.route("/reset-password", methods=["GET", "POST"])
+def reset_password():
+    token = request.args.get("token")
+
+    if not token:
+        flash("No reset password token provided", "error")
+        return redirect(url_for('auth.login'))
+
+    # Validate token
+    user, error = validate_reset_password_token(token, User, db)
+
+    if error:
+        flash(error, "error")
+        return redirect(url_for('auth.login'))
+
+    if request.method == "POST":
+        new_password = request.form.get("new_password")
+        confirm_password = request.form.get("confirm_password")
+
+        # Validate passwords
+        if not new_password or not confirm_password:
+            flash("Please fill in all fields", "error")
+            return render_template("auth/reset-password.html", token=token)
+
+        if new_password != confirm_password:
+            flash("Passwords do not match", "error")
+            return render_template("auth/reset-password.html", token=token)
+
+        if len(new_password) < 8:  # Add your password requirements
+            flash("Password must be at least 8 characters", "error")
+            return render_template("auth/reset-password.html", token=token)
+
+        # Update password
+        user.password_hash = generate_password_hash(new_password)
+
+        # Mark token as used (now that password is actually changed)
+        verify_reset_password(user, db)
+
+        db.session.commit()
+
+        flash("Password reset successfully! Please log in.", "success")
+        return redirect(url_for('auth.login'))
+
+    return render_template("auth/reset-password.html", token=token)
 
 
 @auth_bp.route("/logout")
@@ -304,9 +348,30 @@ def forget_password():
 
 
 
-@auth_bp.route("/new-password")
-def create_new_password():
-    return render_template("auth/create-new-password.html")
+@auth_bp.route("/change-password", methods=["POST"])
+@login_required
+def change_password():
+    # if request.method == "POST":
+        current_password = request.form.get("current_password")
+        new_password = request.form.get("new_password")
+        confirm_password = request.form.get("confirm_password")
+
+        user = current_user
+
+        if not check_password_hash(user.password_hash, current_password):
+            flash("Current password is incorrect", "error")
+            return redirect(url_for("auth.change_password"))
+
+        if new_password != confirm_password:
+            flash("New passwords do not match", "error")
+            return redirect(url_for("auth.change_password"))
+
+        user.password_hash = generate_password_hash(new_password)
+        db.session.commit()
+        flash("Password changed successfully", "success")
+        return redirect(url_for("dashboard"))
+
+    # return render_template("auth/change-password.html")
 
 
 
