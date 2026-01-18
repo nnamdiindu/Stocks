@@ -64,8 +64,18 @@ body {
     box-shadow: 0 0 0 0.2rem rgba(46, 127, 243, 0.25);
 }
 
-/* # Flash styles  */
+/* Target the intl-tel-input wrapper */
+.iti {
+    width: 100%;
+    display: block;
+}
 
+/* Make sure the input inside also takes full width */
+.iti input {
+    width: 100%;
+}
+
+/* # Flash styles  */
 .flash-container {
     position: fixed;
     top: 20px;
