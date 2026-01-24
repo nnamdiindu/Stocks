@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from app.database import db, init_db
+from app.utils.stocks_api import format_number
 
 load_dotenv()
 
@@ -48,6 +49,9 @@ def create_app():
 
     app.limiter = limiter
 
+    # Register it as a Jinja filter
+    app.jinja_env.filters['compact'] = format_number
+
     @login_manager.user_loader
     def load_user(user_id):
         # Load user by ID for Flask-Login
@@ -60,9 +64,11 @@ def create_app():
     # REGISTER BLUEPRINTS
     from app.routes.auth import auth_bp
     from app.routes.main import main_bp
+    from app.routes.dashboard import dashboard_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
+    app.register_blueprint(dashboard_bp)
 
     # CREATE DATABASE TABLES
     with app.app_context():
