@@ -4,3 +4,4 @@ instance
 .idea
 app/__pycache__
 testing.py
+app/cache
