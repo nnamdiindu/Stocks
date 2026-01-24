@@ -21,7 +21,7 @@ auth_bp = Blueprint("auth", __name__)
 def login():
     # If user is already logged in, redirect to dashboard
     if current_user.is_authenticated:
-        return redirect(url_for("main.dashboard"))
+        return redirect(url_for("dashboard.dashboard"))
 
     if request.method == "POST":
         email = request.form.get("email")
@@ -56,7 +56,7 @@ def login():
         next_page = request.args.get("next")
         if next_page:
             return redirect(next_page)
-        return redirect(url_for("main.dashboard"))
+        return redirect(url_for("dashboard.dashboard"))
 
     return render_template("auth/login.html")
 
@@ -66,7 +66,7 @@ def login():
 @limiter.limit("5 per day")
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('main.dashboard'))
+        return redirect(url_for('dashboard.dashboard'))
 
     if request.method == "POST":
         # Get form data
