@@ -1,5 +1,4 @@
-{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/wallet-balance.css">{% endblock %}
-
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/wallet-balance-modal.css">{% endblock %}
 
 <!-- Wallet Balance Section -->
 <div class="wallet-grid">
@@ -17,11 +16,11 @@
         </div>
 
         <div class="balance-actions">
-            <button class="action-btn primary" onclick="window.location.href='/wallet/deposit'">
+            <button class="action-btn primary" onclick="openModal('depositModal')">
                 <i class="fas fa-plus-circle"></i>
                 Deposit
             </button>
-            <button class="action-btn secondary" onclick="window.location.href='/wallet/withdraw'">
+            <button class="action-btn secondary" onclick="openModal('withdrawModal')">
                 <i class="fas fa-arrow-up"></i>
                 Withdraw
             </button>
