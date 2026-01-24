@@ -13,7 +13,7 @@
     </button>
 
     <div class="nav-section">
-        <a href="{{ url_for('main.dashboard') }}" class="nav-item dashboard-tab {% if page_title == 'Dashboard' %}active{% endif %}">
+        <a href="{{ url_for('dashboard.dashboard') }}" class="nav-item dashboard-tab {% if page_title == 'Dashboard' %}active{% endif %}">
             <i class="fas fa-th-large"></i>
             <span>Dashboard</span>
         </a>
@@ -21,11 +21,11 @@
 
     <div class="nav-section">
         <div class="nav-section-title">Invest & Trade</div>
-        <a href="{{ url_for('main.portfolio') }}" class="nav-item dashboard-tab {% if page_title == 'Portfolio' %}active{% endif %}">
+        <a href="{{ url_for('dashboard.portfolio') }}" class="nav-item dashboard-tab {% if page_title == 'Portfolio' %}active{% endif %}">
             <i class="fas fa-briefcase"></i>
             <span>Portfolio</span>
         </a>
-        <a href="{{ url_for('main.invest') }}" class="nav-item dashboard-tab {% if page_title == 'Invest' %}active{% endif %}">
+        <a href="{{ url_for('dashboard.invest') }}" class="nav-item dashboard-tab {% if page_title == 'Invest' %}active{% endif %}">
             <i class="fas fa-exchange-alt"></i>
             <span>Invest</span>
         </a>
@@ -33,7 +33,7 @@
 
     <div class="nav-section">
         <div class="nav-section-title">Wallet & Payments</div>
-        <a href="{{ url_for('main.wallet') }}" class="nav-item dashboard-tab {% if page_title == 'Wallet' %}active{% endif %}">
+        <a href="{{ url_for('dashboard.wallet') }}" class="nav-item dashboard-tab {% if page_title == 'Wallet' %}active{% endif %}">
             <i class="fas fa-wallet"></i>
             <span>Wallet</span>
         </a>
@@ -41,11 +41,11 @@
 
     <div class="nav-section">
         <div class="nav-section-title">Insights & Activity</div>
-        <a href="{{ url_for('main.insights') }}" class="nav-item dashboard-tab {% if page_title == 'Insights' %}active{% endif %}">
+        <a href="{{ url_for('dashboard.insights') }}" class="nav-item dashboard-tab {% if page_title == 'Insights' %}active{% endif %}">
             <i class="fas fa-bolt"></i>
             <span>Insights</span>
         </a>
-        <a href="{{ url_for('main.notifications') }}" class="nav-item dashboard-tab {% if page_title == 'Notifications' %}active{% endif %}">
+        <a href="{{ url_for('dashboard.notifications') }}" class="nav-item dashboard-tab {% if page_title == 'Notifications' %}active{% endif %}">
             <i class="fas fa-bell"></i>
             <span>Notifications</span>
         </a>
@@ -53,7 +53,7 @@
 
     <div class="nav-section">
         <div class="nav-section-title">Rewards</div>
-        <a href="{{ url_for('main.referrals') }}" class="nav-item dashboard-tab {% if page_title == 'Referrals' %}active{% endif %}">
+        <a href="{{ url_for('dashboard.referrals') }}" class="nav-item dashboard-tab {% if page_title == 'Referrals' %}active{% endif %}">
             <i class="fas fa-gift"></i>
             <span>Referrals</span>
         </a>
@@ -61,11 +61,11 @@
 
     <div class="nav-section">
         <div class="nav-section-title">Support & Account</div>
-        <a href="{{ url_for('main.support') }}" class="nav-item dashboard-tab {% if page_title == 'Support' %}active{% endif %}">
+        <a href="{{ url_for('dashboard.support') }}" class="nav-item dashboard-tab {% if page_title == 'Support' %}active{% endif %}">
             <i class="fas fa-headset"></i>
             <span>Support</span>
         </a>
-        <a href="{{ url_for('main.settings') }}" class="nav-item dashboard-tab {% if page_title == 'Settings' %}active{% endif %}">
+        <a href="{{ url_for('dashboard.settings') }}" class="nav-item dashboard-tab {% if page_title == 'Settings' %}active{% endif %}">
             <i class="fas fa-cog"></i>
             <span>Settings</span>
         </a>
