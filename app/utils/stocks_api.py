@@ -223,8 +223,7 @@ class FinnhubStockAPI:
 
     def _get_cache_path(self, filename='stocks_cache.json'):
         """Get cache file path"""
-        cache_dir = Path(__file__).parent.parent / 'cache'
-        cache_dir.mkdir(exist_ok=True)
+        cache_dir = Path('/tmp')  # Always use /tmp
         return cache_dir / filename
 
     def cache_major_stocks(self, filename='stocks_cache.json', limit=50):
