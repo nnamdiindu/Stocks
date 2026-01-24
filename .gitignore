@@ -3,5 +3,7 @@
 instance
 .idea
 app/__pycache__
+app/routes/__pycache__/
+app/utils/__pycache__/
 testing.py
 app/cache
