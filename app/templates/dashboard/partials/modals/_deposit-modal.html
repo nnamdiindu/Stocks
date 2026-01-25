@@ -1,101 +1,288 @@
 <!-- Deposit Modal -->
 <div class="modal" id="depositModal">
     <div class="modal-overlay" onclick="closeModal('depositModal')"></div>
-    <div class="modal-content">
-        <button class="modal-close" onclick="closeModal('depositModal')">
-            <i class="fas fa-times"></i>
-        </button>
+    <div class="modal-container">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('depositModal')">
+                <i class="fas fa-times"></i>
+            </button>
 
-        <h2 class="modal-title">Select Currency and Payment</h2>
+            <h2 class="modal-title">Select Currency and Payment</h2>
 
-        <form id="depositForm" class="modal-form">
-            <!-- Select Currency -->
-            <div class="form-group">
-                <label class="form-label">Select Currency</label>
-                <div class="select-wrapper">
-                    <i class="fas fa-dollar-sign select-icon"></i>
-                    <select class="form-select" id="depositCurrency" onchange="updateDepositIcon(this)">
-                        <option value="USD" data-icon="fa-dollar-sign">USD</option>
-                        <option value="BTC" data-icon="fa-bitcoin">BTC</option>
-                        <option value="ETH" data-icon="fa-ethereum">ETH</option>
-                        <option value="USDT" data-icon="fa-dollar-sign">USDT</option>
-                    </select>
+            <form id="depositForm" class="modal-form">
+                <!-- Select Currency -->
+                <div class="form-group">
+                    <label class="form-label">Select Currency</label>
+                    <div class="select-wrapper">
+                        <i class="fas fa-dollar-sign select-icon"></i>
+                        <select class="form-select" id="depositCurrency" onchange="updateDepositIcon(this)">
+                            <option value="USD" data-icon="fa-dollar-sign">USD</option>
+                            <option value="BTC" data-icon="fa-bitcoin">BTC</option>
+                            <option value="ETH" data-icon="fa-ethereum">ETH</option>
+                            <option value="USDT" data-icon="fa-dollar-sign">USDT</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Amount -->
-            <div class="form-group">
-                <label class="form-label">Amount</label>
-                <input type="text" class="form-input" placeholder="$0.00" id="depositAmount">
-            </div>
+                <!-- Amount -->
+                <div class="form-group">
+                    <label class="form-label">Amount</label>
+                    <input type="text" class="form-input" placeholder="$0.00" id="depositAmount">
+                </div>
 
-            <!-- Payment Method Selection -->
-            <div class="form-group">
-                <label class="form-label">Choose payment method:</label>
-                
-                <div class="payment-options">
-                    <!-- PayPal Option -->
-                    <label class="payment-option">
-                        <input type="radio" name="paymentMethod" value="paypal" onchange="togglePaymentFields()">
-                        <div class="payment-option-content">
-                            <span class="payment-option-text">Pay Pal</span>
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" class="payment-logo">
-                        </div>
-                    </label>
-
-                    <!-- Card Option -->
-                    <label class="payment-option">
-                        <input type="radio" name="paymentMethod" value="card" checked onchange="togglePaymentFields()">
-                        <div class="payment-option-content">
-                            <span class="payment-option-text">Credit & Debit Card</span>
-                            <div class="card-logos">
-                                <i class="fab fa-cc-visa"></i>
-                                <i class="fab fa-cc-mastercard"></i>
-                                <i class="fab fa-cc-amex"></i>
-                                <i class="fab fa-cc-stripe"></i>
+                <!-- Payment Method Selection -->
+                <div class="form-group">
+                    <label class="form-label">Choose payment method:</label>
+                    
+                    <div class="payment-options">
+                        <!-- PayPal Option -->
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="paypal" onchange="togglePaymentFields()">
+                            <div class="payment-option-content">
+                                <span class="payment-option-text">Pay Pal</span>
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" class="payment-logo">
                             </div>
+                        </label>
+
+                        <!-- Card Option -->
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="card" checked onchange="togglePaymentFields()">
+                            <div class="payment-option-content">
+                                <span class="payment-option-text">Credit & Debit Card</span>
+                                <div class="card-logos">
+                                    <i class="fab fa-cc-visa"></i>
+                                    <i class="fab fa-cc-mastercard"></i>
+                                    <i class="fab fa-cc-amex"></i>
+                                    <i class="fab fa-cc-stripe"></i>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Card Details (shown when card is selected) -->
+                <div id="cardDetails" class="card-details">
+                    <!-- Name on Card -->
+                    <div class="form-group">
+                        <label class="form-label">Name on card</label>
+                        <input type="text" class="form-input" placeholder="John Doe" id="cardName">
+                    </div>
+
+                    <!-- Card Number -->
+                    <div class="form-group">
+                        <label class="form-label">Number</label>
+                        <div class="card-input-wrapper">
+                            <input type="text" class="form-input" placeholder="1234 5678 9123 4567" id="cardNumber" maxlength="19">
+                            <i class="fab fa-cc-visa card-brand-icon"></i>
                         </div>
-                    </label>
-                </div>
-            </div>
+                    </div>
 
-            <!-- Card Details (shown when card is selected) -->
-            <div id="cardDetails" class="card-details">
-                <!-- Name on Card -->
-                <div class="form-group">
-                    <label class="form-label">Name on card</label>
-                    <input type="text" class="form-input" placeholder="John Doe" id="cardName">
-                </div>
-
-                <!-- Card Number -->
-                <div class="form-group">
-                    <label class="form-label">Number</label>
-                    <div class="card-input-wrapper">
-                        <input type="text" class="form-input" placeholder="1234 5678 9123 4567" id="cardNumber" maxlength="19">
-                        <i class="fab fa-cc-visa card-brand-icon"></i>
+                    <!-- Valid and CVV -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Valid</label>
+                            <input type="text" class="form-input" placeholder="MM/YY" id="cardExpiry" maxlength="7">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">CVV</label>
+                            <input type="text" class="form-input" placeholder="Code" id="cardCvv" maxlength="4">
+                        </div>
                     </div>
                 </div>
 
-                <!-- Valid and CVV -->
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Valid</label>
-                        <input type="text" class="form-input" placeholder="MM/YY" id="cardExpiry" maxlength="7">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">CVV</label>
-                        <input type="text" class="form-input" placeholder="Code" id="cardCvv" maxlength="4">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" class="modal-submit-btn">Deposit</button>
-        </form>
+                <!-- Submit Button -->
+                <button type="submit" class="modal-submit-btn">Deposit</button>
+            </form>
+        </div>
     </div>
 </div>
 
 <style>
+/* Modal Base */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+}
+
+.modal.active {
+    display: block;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Modal Container - Centering wrapper */
+.modal-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+    pointer-events: none;
+}
+
+/* Modal Content */
+.modal-content {
+    position: relative;
+    background: white;
+    border-radius: 24px;
+    padding: 40px;
+    width: 100%;
+    max-width: 500px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease-out;
+    pointer-events: all;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Close Button */
+.modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 36px;
+    height: 36px;
+    background: #F3F4F6;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #6B7280;
+    z-index: 1;
+}
+
+.modal-close:hover {
+    background: #E5E7EB;
+    color: #374151;
+}
+
+/* Modal Title */
+.modal-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0 0 32px 0;
+    line-height: 1.4;
+    padding-right: 40px;
+}
+
+/* Form Styles */
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #6B7280;
+    margin-bottom: 8px;
+}
+
+/* Select Wrapper */
+.select-wrapper {
+    position: relative;
+}
+
+.select-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: #6B7280;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.form-select {
+    width: 100%;
+    padding: 16px 48px 16px 52px;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    font-size: 15px;
+    color: var(--text-dark);
+    background: white;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    transition: all 0.2s;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Input */
+.form-input {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    font-size: 15px;
+    color: var(--text-dark);
+    transition: all 0.2s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-input::placeholder {
+    color: #D1D5DB;
+}
+
 /* Payment Options */
 .payment-options {
     display: flex;
@@ -225,8 +412,85 @@
     padding-right: 50px;
 }
 
+/* Submit Button */
+.modal-submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: #2563EB;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+}
+
+.modal-submit-btn:hover {
+    background: #1D4ED8;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+}
+
+.modal-submit-btn:active {
+    transform: translateY(0);
+}
+
+/* Scrollbar */
+.modal-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: #F3F4F6;
+    border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: #D1D5DB;
+    border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
+    .modal-container {
+        padding: 0;
+        align-items: stretch;
+    }
+    
+    .modal-content {
+        border-radius: 0;
+        max-height: 100vh;
+        height: 100%;
+        padding: 28px 24px;
+    }
+
+    .modal-title {
+        font-size: 18px;
+        margin-bottom: 24px;
+    }
+
+    .modal-form {
+        gap: 20px;
+    }
+
+    .form-input,
+    .form-select {
+        padding: 14px;
+        padding-left: 48px;
+        font-size: 14px;
+    }
+
+    .modal-submit-btn {
+        padding: 14px;
+        font-size: 15px;
+    }
+
     .payment-option-content {
         padding: 14px 16px;
     }
@@ -305,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Handle deposit form submission
-document.getElementById('depositForm').addEventListener('submit', function(e) {
+document.getElementById('depositForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
     
     const currency = document.getElementById('depositCurrency').value;
