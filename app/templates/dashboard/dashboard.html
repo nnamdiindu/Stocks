@@ -8,7 +8,7 @@
     {% include "dashboard/partials/components/_kyc-alert.html" %}
 
     <!-- Account Balance Card -->
-    {% include "dashboard/partials/components/_account-balance.html" %}
+    {% include "dashboard/partials/components/_wallet-balance.html" %}
 
     <!-- Content Grid -->
     <div class="content-grid">
@@ -24,5 +24,9 @@
 
     <!-- Recent Activity -->
     {% include "dashboard/partials/components/_recent-activity.html" %}
+
+      <!-- Modals -->
+    {% include "dashboard/partials/modals/_deposit-modal.html" %}
+    {% include "dashboard/partials/modals/_withdraw-modal.html" %}
 
 {% endblock %}
