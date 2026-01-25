@@ -4,11 +4,11 @@
 }
 
 html {
-  font-size: 14px; /* Default is usually 16px */
+  font-size: 14px !important;
 }
 
 body {
-    font-family: 'Montserrat', sans-serif;
+    /* font-family: 'Montserrat', sans-serif !important; */
     /* zoom: 0.8; */
 }
 
