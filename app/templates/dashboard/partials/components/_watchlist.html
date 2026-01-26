@@ -24,7 +24,7 @@
     </div>
     
     <!-- Tab Content: New -->
-    <div class="watchlist-content active" id="watchlist-new">
+    {# <div class="watchlist-content active" id="watchlist-new">
         
         {% for stock in all_stocks[:5] %}
         <div class="watchlist-item">
@@ -41,10 +41,10 @@
             <div class="stock-change {{ 'positive' if stock.change >= 0 else 'negative' }}">{{ stock.change }}%</div>
         </div>
         {% endfor %}
-    </div>
+    </div> #}
     
     <!-- Tab Content: Trending -->
-    <div class="watchlist-content" id="watchlist-trending"> 
+   {# <div class="watchlist-content" id="watchlist-trending"> 
         {% for stock in trending_stocks[:5] %}
         <div class="watchlist-item">
             <div class="stock-info">
@@ -60,10 +60,10 @@
             <div class="stock-change {{ 'positive' if stock.change >= 0 else 'negative' }}">{{ stock.change }}%</div>
         </div>
         {% endfor %}
-    </div>
+    </div> #}
     
     <!-- Tab Content: Gainers & Losers -->
-    <div class="watchlist-content" id="watchlist-gainers">
+  {# <div class="watchlist-content" id="watchlist-gainers">
         {% for stock in gainers_losers_stocks %}
         <div class="watchlist-item">
             <div class="stock-info">
@@ -77,6 +77,85 @@
             </div>
             <div class="stock-volume">${{ stock.marketCap | compact }}</div>
             <div class="stock-change {{ 'positive' if stock.change >= 0 else 'negative' }}">{{ stock.change }}%</div>
+        </div>
+        {% endfor %}
+    </div> #}
+
+    
+    <!-- Tab Content: New -->
+    <div class="watchlist-content active" id="watchlist-new">
+        {% set new_stocks = [
+            {'name': 'Apple', 'symbol': 'AAPL', 'icon': 'fab fa-apple', 'volume': '$27.5M', 'change': '+21.75', 'positive': true},
+            {'name': 'Amazon', 'symbol': 'AMZN', 'icon': 'fab fa-amazon', 'volume': '$27.5M', 'change': '+21.75', 'positive': true},
+            {'name': 'Apple', 'symbol': 'AAPL', 'icon': 'fab fa-apple', 'volume': '$27.5M', 'change': '-21.75', 'positive': false},
+            {'name': 'Amazon', 'symbol': 'AMZN', 'icon': 'fab fa-amazon', 'volume': '$27.5M', 'change': '+21.75', 'positive': true}
+        ] %}
+        
+        {% for stock in new_stocks %}
+        <div class="watchlist-item">
+            <div class="stock-info">
+                <div class="stock-logo">
+                    <i class="{{ stock.icon }}" style="font-size: 20px;"></i>
+                </div>
+                <div>
+                    <div class="stock-name">{{ stock.name }}</div>
+                    <div class="stock-symbol">{{ stock.symbol }}</div>
+                </div>
+            </div>
+            <div class="stock-volume">{{ stock.volume }}</div>
+            <div class="stock-change {{ 'positive' if stock.positive else 'negative' }}">{{ stock.change }}%</div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Tab Content: Trending -->
+    <div class="watchlist-content" id="watchlist-trending">
+        {% set trending_stocks = [
+            {'name': 'Tesla', 'symbol': 'TSLA', 'icon': 'fas fa-bolt', 'volume': '$45.2M', 'change': '+35.42', 'positive': true},
+            {'name': 'Meta', 'symbol': 'META', 'icon': 'fab fa-meta', 'volume': '$38.7M', 'change': '+28.91', 'positive': true},
+            {'name': 'Nvidia', 'symbol': 'NVDA', 'icon': 'fas fa-microchip', 'volume': '$52.1M', 'change': '+42.15', 'positive': true},
+            {'name': 'Microsoft', 'symbol': 'MSFT', 'icon': 'fab fa-microsoft', 'volume': '$41.3M', 'change': '+31.87', 'positive': true}
+        ] %}
+        
+        {% for stock in trending_stocks %}
+        <div class="watchlist-item">
+            <div class="stock-info">
+                <div class="stock-logo">
+                    <i class="{{ stock.icon }}" style="font-size: 20px;"></i>
+                </div>
+                <div>
+                    <div class="stock-name">{{ stock.name }}</div>
+                    <div class="stock-symbol">{{ stock.symbol }}</div>
+                </div>
+            </div>
+            <div class="stock-volume">{{ stock.volume }}</div>
+            <div class="stock-change {{ 'positive' if stock.positive else 'negative' }}">{{ stock.change }}%</div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Tab Content: Gainers & Losers -->
+    <div class="watchlist-content" id="watchlist-gainers">
+        {% set gainers_losers = [
+            {'name': 'GameStop', 'symbol': 'GME', 'icon': 'fas fa-gamepad', 'volume': '$89.4M', 'change': '+156.73', 'positive': true},
+            {'name': 'AMD', 'symbol': 'AMD', 'icon': 'fas fa-microchip', 'volume': '$67.2M', 'change': '+89.21', 'positive': true},
+            {'name': 'Snapchat', 'symbol': 'SNAP', 'icon': 'fab fa-snapchat-ghost', 'volume': '$23.8M', 'change': '-45.67', 'positive': false},
+            {'name': 'Netflix', 'symbol': 'NFLX', 'icon': 'fas fa-film', 'volume': '$31.5M', 'change': '-32.14', 'positive': false}
+        ] %}
+        
+        {% for stock in gainers_losers %}
+        <div class="watchlist-item">
+            <div class="stock-info">
+                <div class="stock-logo">
+                    <i class="{{ stock.icon }}" style="font-size: 20px;"></i>
+                </div>
+                <div>
+                    <div class="stock-name">{{ stock.name }}</div>
+                    <div class="stock-symbol">{{ stock.symbol }}</div>
+                </div>
+            </div>
+            <div class="stock-volume">{{ stock.volume }}</div>
+            <div class="stock-change {{ 'positive' if stock.positive else 'negative' }}">{{ stock.change }}%</div>
         </div>
         {% endfor %}
     </div>
