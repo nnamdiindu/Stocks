@@ -8,17 +8,17 @@ dashboard_bp = Blueprint("dashboard", __name__)
 @dashboard_bp.route("/dashboard")
 @login_required
 def dashboard():
-    all_stocks = api.get_all_major_stocks(
-        limit=50,
-        use_cache=True,
-        cache_max_age_hours=24
-    )
-    categories = api.categorize_stocks(all_stocks)
-    gainers_and_losers = categories["gainers"][:3] + categories["losers"][:2]
+    # all_stocks = api.get_all_major_stocks(
+    #     limit=50,
+    #     use_cache=True,
+    #     cache_max_age_hours=24
+    # )
+    # categories = api.categorize_stocks(all_stocks)
+    # gainers_and_losers = categories["gainers"][:3] + categories["losers"][:2]
     return render_template("dashboard/dashboard.html",
-                           all_stocks=all_stocks,
-                           trending_stocks=categories["trending"],
-                           gainers_losers_stocks=gainers_and_losers,
+                           # all_stocks=all_stocks,
+                           # trending_stocks=categories["trending"],
+                           # gainers_losers_stocks=gainers_and_losers,
                            current_user=current_user)
 
 @dashboard_bp.route("/dashboard/portfolio")
