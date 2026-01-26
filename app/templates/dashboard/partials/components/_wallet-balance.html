@@ -15,6 +15,8 @@
             <span class="comparison-text">Compare to last month</span>
         </div>
 
+        <!-- Hide Deposit and Withdraw Button from Dashboard home page to avoid modal irregular view -->
+        {% if page_title != "Dashboard" %}
         <div class="balance-actions">
             <button class="action-btn primary" onclick="openModal('depositModal')">
                 <i class="fas fa-plus-circle"></i>
@@ -25,6 +27,7 @@
                 Withdraw
             </button>
         </div>
+        {% endif %}
     </div>
 
     <!-- Stats Cards -->
