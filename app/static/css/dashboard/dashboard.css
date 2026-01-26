@@ -12,14 +12,18 @@
 
 html {
     font-size: 14px !important;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
 }
 
 body {
     /* font-family: 'Montserrat', sans-serif; */
     background-color: #f8f9fa;
     color: var(--text-dark);
-    overflow-x: hidden;
-}
+    min-height: 100vh;
+    position: relative;}
 
 /* Wrapper for scaled content */
 .main-content {
