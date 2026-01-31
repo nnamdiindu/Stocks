@@ -20,11 +20,11 @@
     {% endif %}
     {% endwith %}
     <div class="top-bar-right">
-        <button class="icon-btn">
-            <a href="{{ url_for('dashboard.settings') }}"><i class="fas fa-cog"></i></a> 
+        <button class="icon-btn text-decoration-none">
+            <a href="{{ url_for('dashboard.settings') }}" class="text-secondary"><i class="fas fa-cog"></i></a> 
         </button>
-        <button class="icon-btn">
-            <a href="{{ url_for('dashboard.notifications') }}"><i class="fas fa-bell"></i></a>
+        <button class="icon-btn text-decoration-none">
+            <a href="{{ url_for('dashboard.notifications') }}" class="text-secondary"><i class="fas fa-bell"></i></a>
         </button>
         <div class="user-profile">
             <div class="user-avatar">BK</div>
