@@ -7,10 +7,10 @@
         <img src="../../static/images/StocksCo-logo.png" alt="StocksCo logo" max-width="=30px" height="40px">
     </div>
 
-    <button class="new-investment-btn">
+    <a href="{{ url_for('dashboard.invest') }}" class="new-investment-btn text-decoration-none">
         <i class="fas fa-plus"></i>
         New Investment
-    </button>
+    </a>
 
     <div class="nav-section">
         <a href="{{ url_for('dashboard.dashboard') }}" class="nav-item dashboard-tab {% if page_title == 'Dashboard' %}active{% endif %}">
