@@ -34,9 +34,6 @@ class NotificationPriority(str, Enum):
 
 
 class Notification(db.Model):
-    """
-    Main notification model for storing user notifications
-    """
     __tablename__ = 'notifications'
 
     # Primary Fields
