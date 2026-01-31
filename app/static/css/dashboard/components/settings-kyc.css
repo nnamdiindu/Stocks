@@ -194,6 +194,11 @@
     font-weight: bold;
 }
 
+.submit-btn-container {
+     display: flex;         
+    justify-content: center;  
+    align-items: center; 
+}
 .submit-btn {
     width: 100%;
     max-width: 400px;
