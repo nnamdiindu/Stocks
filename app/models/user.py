@@ -1,9 +1,9 @@
 from datetime import datetime, timezone, date
 from flask_login import UserMixin
 from sqlalchemy import String, Boolean, DateTime, Integer, Enum, Date
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
-from app import db
+from app.database import db
 
 
 class AccountStatus(enum.Enum):
@@ -58,6 +58,18 @@ class User(UserMixin, db.Model):
     )
 
     # Relationships
+    notifications: Mapped[list["Notification"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="dynamic"
+    )
+
+    # Notification preferences relationship
+    notification_preferences: Mapped["NotificationPreference"] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+        uselist=False  # One-to-one relationship
+    )
     # account = relationship("UserAccount", back_populates="user", uselist=False)
     # holdings = relationship("UserHolding", back_populates="user", cascade="all, delete-orphan")
     # stock_transactions = relationship("StockTransaction", back_populates="user", cascade="all, delete-orphan")
@@ -65,7 +77,6 @@ class User(UserMixin, db.Model):
     # withdrawals = relationship("Withdrawal", back_populates="user", cascade="all, delete-orphan")
     # transaction_history = relationship("TransactionHistory", back_populates="user", cascade="all, delete-orphan")
     # notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
-
     # Referral relationships
     # referred_by = relationship("User", remote_side=[user_id], backref="referrals")
     # referral_given = relationship("Referral", foreign_keys="Referral.referrer_id", back_populates="referrer")
