@@ -322,6 +322,7 @@
 }
 
 /* Mobile Responsive */
+/* Mobile Responsive - Update the existing @media query */
 @media (max-width: 968px) {
     .stocks-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -329,13 +330,54 @@
 }
 
 @media (max-width: 768px) {
-    .stock-modal {
-        max-width: 100% !important;
+    /* Full viewport modal on mobile */
+    .modal-container {
+        padding: 5;
+        align-items: flex-start;
     }
     
+    .modal-content {
+        max-height: 95vh;
+        height: 95vh;
+        max-width: 100%;
+        width: 100%;
+        border-radius: 20px 20px 0 0;
+        padding: 24px 16px;
+        margin: 0;
+    }
+    
+    .stock-modal {
+        max-width: 100% !important;
+        border-radius: 20px 20px 0 0;
+    }
+    
+    /* Adjust modal title for mobile */
+    .modal-title {
+        font-size: 20px;
+        padding-right: 40px; /* Space for close button */
+    }
+    
+    /* Close button positioning */
+    .modal-close {
+        top: 16px;
+        right: 16px;
+    }
+    
+    /* Search bar on mobile */
+    .stock-search {
+        margin-bottom: 16px;
+    }
+    
+    .search-input {
+        padding: 12px 12px 12px 40px;
+        font-size: 14px;
+    }
+    
+    /* Stocks grid mobile */
     .stocks-grid {
         grid-template-columns: 1fr;
-        max-height: 60vh;
+        max-height: calc(95vh - 180px); /* Adjust based on header + search height */
+        gap: 12px;
     }
 
     .stock-card {
@@ -349,6 +391,17 @@
     .buy-btn {
         padding: 8px 16px;
         font-size: 12px;
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+    .modal-content {
+        padding: 20px 12px;
+    }
+    
+    .stocks-grid {
+        max-height: calc(95vh - 160px);
     }
 }
 </style>
