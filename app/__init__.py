@@ -61,6 +61,8 @@ def create_app():
             select(User).where(User.id == int(user_id))
         ).scalar_one_or_none()
 
+    from app import models
+
     # REGISTER BLUEPRINTS
     from app.routes.auth import auth_bp
     from app.routes.main import main_bp
