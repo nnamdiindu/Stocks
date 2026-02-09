@@ -46,11 +46,6 @@ def wallet():
 def insights():
     return render_template("dashboard/insights.html")
 
-@dashboard_bp.route("/dashboard/notifications")
-@login_required
-def notifications():
-    return render_template("dashboard/notifications.html")
-
 @dashboard_bp.route("/dashboard/support")
 @login_required
 def support():
