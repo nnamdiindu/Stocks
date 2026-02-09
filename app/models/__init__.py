@@ -1,5 +1,5 @@
 from app.models.user import User
-from app.models.notification import Notification, NotificationPreference
+from app.models.notifications import Notification, NotificationPreference
 # Import other models as you create them
 
 __all__ = [
