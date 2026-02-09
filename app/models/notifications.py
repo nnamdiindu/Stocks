@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 from sqlalchemy import String, Text, Boolean, DateTime, JSON, ForeignKey, Index, func
@@ -34,6 +34,7 @@ class NotificationPriority(str, Enum):
 
 
 class Notification(db.Model):
+    """Main notification model"""
     __tablename__ = 'notifications'
 
     # Primary Fields
@@ -47,7 +48,7 @@ class Notification(db.Model):
     title: Mapped[str] = mapped_column(String(200))
     message: Mapped[str] = mapped_column(Text)
 
-    # Action Fields (for actionable notifications)
+    # Action Fields
     action_text: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     action_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
@@ -56,7 +57,7 @@ class Notification(db.Model):
     read_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     # Metadata & Context
-    # metadata: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    notification_metadata: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     related_object_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     related_object_id: Mapped[Optional[int]] = mapped_column(nullable=True)
 
@@ -75,7 +76,7 @@ class Notification(db.Model):
     # Relationships
     user: Mapped["User"] = relationship(back_populates="notifications")
 
-    # Composite Indexes for performance
+    # Composite Indexes
     __table_args__ = (
         Index('idx_user_read_created', 'user_id', 'is_read', 'created_at'),
         Index('idx_user_category', 'user_id', 'category'),
@@ -84,31 +85,6 @@ class Notification(db.Model):
 
     def __repr__(self) -> str:
         return f'<Notification {self.id}: {self.title} for User {self.user_id}>'
-
-    def mark_as_read(self, session) -> None:
-        """Mark notification as read"""
-        if not self.is_read:
-            self.is_read = True
-            self.read_at = datetime.utcnow()
-            session.commit()
-
-    def mark_as_unread(self, session) -> None:
-        """Mark notification as unread"""
-        if self.is_read:
-            self.is_read = False
-            self.read_at = None
-            session.commit()
-
-    def soft_delete(self, session) -> None:
-        """Soft delete notification (user dismissed it)"""
-        self.deleted_at = datetime.utcnow()
-        session.commit()
-
-    def is_expired(self) -> bool:
-        """Check if notification has expired"""
-        if self.expires_at:
-            return datetime.utcnow() > self.expires_at
-        return False
 
     def to_dict(self) -> dict:
         """Convert notification to dictionary for JSON serialization"""
@@ -126,13 +102,13 @@ class Notification(db.Model):
             'created_at': self.created_at.isoformat(),
             'time': self._get_relative_time(),
             'date': self.created_at.strftime('%b %d, %I:%M %p'),
-            'metadata': self.metadata,
-            'unread': not self.is_read  # For template compatibility
+            'notification_metadata': self.metadata,
+            'unread': not self.is_read
         }
 
     def _get_relative_time(self) -> str:
         """Get human-readable relative time"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         diff = now - self.created_at
 
         seconds = diff.total_seconds()
@@ -154,124 +130,15 @@ class Notification(db.Model):
         else:
             return self.created_at.strftime('%b %d, %Y')
 
-    @staticmethod
-    def create_trade_notification(session, user_id: int, trade_data: dict) -> "Notification":
-        """Helper method to create trade-related notifications"""
-        notification = Notification(
-            user_id=user_id,
-            type=NotificationType.SUCCESS.value,
-            category=NotificationCategory.TRADE.value,
-            priority=NotificationPriority.NORMAL.value,
-            title='Trade Successful',
-            message=f"Your order to {trade_data['action']} {trade_data['symbol']} has been completed at ${trade_data['price']} per share.",
-            metadata={
-                'symbol': trade_data['symbol'],
-                'quantity': trade_data['quantity'],
-                'price': trade_data['price'],
-                'action': trade_data['action']
-            },
-            related_object_type='Trade',
-            related_object_id=trade_data.get('trade_id')
-        )
-        session.add(notification)
-        session.commit()
-        return notification
-
-    @staticmethod
-    def create_wallet_notification(session, user_id: int, wallet_data: dict,
-                                   notification_type: str = 'deposit') -> "Notification":
-        """Helper method to create wallet-related notifications"""
-        if notification_type == 'deposit':
-            title = 'Wallet Funded'
-            message = f"${wallet_data['amount']:,.2f} has been successfully added to your wallet via {wallet_data['method']}."
-            notif_type = NotificationType.SUCCESS.value
-        elif notification_type == 'withdrawal':
-            title = 'Withdrawal in Progress'
-            message = f"Your withdrawal request of ${wallet_data['amount']:,.2f} is being processed."
-            notif_type = NotificationType.INFO.value
-        else:
-            title = 'Wallet Activity'
-            message = wallet_data.get('message', 'Your wallet has been updated.')
-            notif_type = NotificationType.INFO.value
-
-        notification = Notification(
-            user_id=user_id,
-            type=notif_type,
-            category=NotificationCategory.WALLET.value,
-            priority=NotificationPriority.NORMAL.value,
-            title=title,
-            message=message,
-            metadata=wallet_data,
-            related_object_type='Transaction',
-            related_object_id=wallet_data.get('transaction_id')
-        )
-        session.add(notification)
-        session.commit()
-        return notification
-
-    @staticmethod
-    def create_security_notification(session, user_id: int, security_data: dict) -> "Notification":
-        """Helper method to create security-related notifications"""
-        notification = Notification(
-            user_id=user_id,
-            type=NotificationType.DANGER.value,
-            category=NotificationCategory.SECURITY.value,
-            priority=NotificationPriority.URGENT.value,
-            title=security_data.get('title', 'Security Alert'),
-            message=security_data['message'],
-            metadata={
-                'ip_address': security_data.get('ip_address'),
-                'location': security_data.get('location'),
-                'device': security_data.get('device'),
-                'timestamp': datetime.utcnow().isoformat()
-            },
-            action_text='Secure Account',
-            action_url='/settings?tab=security'
-        )
-        session.add(notification)
-        session.commit()
-        return notification
-
-    @staticmethod
-    def create_kyc_notification(session, user_id: int, kyc_status: str = 'pending') -> "Notification":
-        """Helper method to create KYC-related notifications"""
-        messages = {
-            'pending': 'Please complete your KYC / identity verification to enable withdrawals and unlock all features.',
-            'approved': 'Your KYC verification has been approved! You now have full access to all features.',
-            'rejected': 'Your KYC verification was not approved. Please review the requirements and try again.'
-        }
-
-        types = {
-            'pending': NotificationType.WARNING.value,
-            'approved': NotificationType.SUCCESS.value,
-            'rejected': NotificationType.DANGER.value
-        }
-
-        notification = Notification(
-            user_id=user_id,
-            type=types.get(kyc_status, NotificationType.INFO.value),
-            category=NotificationCategory.KYC.value,
-            priority=NotificationPriority.HIGH.value,
-            title='KYC Verification' if kyc_status == 'pending' else f'KYC {kyc_status.capitalize()}',
-            message=messages.get(kyc_status, messages['pending']),
-            action_text='Verify now' if kyc_status == 'pending' else None,
-            action_url='/settings?tab=kyc' if kyc_status == 'pending' else None
-        )
-        session.add(notification)
-        session.commit()
-        return notification
-
 
 class NotificationPreference(db.Model):
-    """
-    User notification preferences - controls what notifications users receive
-    """
+    """User notification preferences"""
     __tablename__ = 'notification_preferences'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), unique=True, index=True)
 
-    # Category Preferences (enable/disable by category)
+    # Category Preferences
     trade_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     wallet_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     security_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -298,19 +165,6 @@ class NotificationPreference(db.Model):
 
     def __repr__(self) -> str:
         return f'<NotificationPreference for User {self.user_id}>'
-
-    def should_send_notification(self, category: str) -> bool:
-        """Check if user wants to receive notifications for this category"""
-        category_map = {
-            NotificationCategory.TRADE.value: self.trade_enabled,
-            NotificationCategory.WALLET.value: self.wallet_enabled,
-            NotificationCategory.SECURITY.value: self.security_enabled,
-            NotificationCategory.KYC.value: self.kyc_enabled,
-            NotificationCategory.SYSTEM.value: self.system_enabled,
-            NotificationCategory.PROMOTION.value: self.promotion_enabled,
-            NotificationCategory.ACCOUNT.value: self.account_enabled,
-        }
-        return category_map.get(category, True)
 
     def to_dict(self) -> dict:
         """Convert preferences to dictionary"""
