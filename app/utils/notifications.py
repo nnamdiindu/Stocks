@@ -24,7 +24,7 @@ def create_notification(user_id, notification_type, category, title, message, **
         priority=kwargs.get("priority", NotificationPriority.NORMAL.value),
         action_text=kwargs.get("action_text"),
         action_url=kwargs.get("action_url"),
-        notification_metadata=kwargs.get("metadata"),
+        notification_metadata=kwargs.get("notification_metadata"),
         related_object_type=kwargs.get("related_object_type"),
         related_object_id=kwargs.get("related_object_id"),
         expires_at=kwargs.get("expires_at")

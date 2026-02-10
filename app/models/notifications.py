@@ -102,7 +102,7 @@ class Notification(db.Model):
             'created_at': self.created_at.isoformat(),
             'time': self._get_relative_time(),
             'date': self.created_at.strftime('%b %d, %I:%M %p'),
-            'notification_metadata': self.metadata,
+            'notification_metadata': self.notification_metadata,
             'unread': not self.is_read
         }
 
