@@ -29,7 +29,8 @@ body {
 .about-us-div,
 .tech-people-section-div,
 .what-we-do-section-div,
-.mission-vision-section-div {
+.mission-vision-section-div,
+.ai-trading-section-div {
     margin: 0.625rem 0.725rem;
 
 }
@@ -828,6 +829,194 @@ body {
     background: rgba(255, 255, 255, 0.1) !important;
     color: white !important;
 }
+
+.ai-trading-section {
+        background: linear-gradient(180deg, #484848 0%, #2a2a2a 100%);
+        color: white;
+        padding: 80px 20px;
+    }
+
+    .ai-trading-section .ai-badge {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 10px 20px;
+        border-radius: 25px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 2rem;
+        font-size: 0.95rem;
+    }
+
+    .ai-trading-section h2 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+    }
+
+    .ai-trading-section .section-description {
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.85);
+        line-height: 1.8;
+        margin-bottom: 3rem;
+        max-width: 1000px;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        height: 100%;
+        margin-bottom: 1.5rem;
+    }
+
+    .chart-card h5 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+
+    .chart-card p {
+        font-size: 0.95rem;
+        color: #6B7280;
+        margin-bottom: 1.5rem;
+    }
+
+    .chart-card img {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+    }
+
+    .feature-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .feature-card .feature-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .feature-icon.blue {
+        background: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
+        color: white;
+    }
+
+    .feature-icon.green {
+        background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+        color: white;
+    }
+
+    .feature-icon.cyan {
+        background: linear-gradient(135deg, #06B6D4 0%, #22D3EE 100%);
+        color: white;
+    }
+
+    .feature-icon.teal {
+        background: linear-gradient(135deg, #14B8A6 0%, #2DD4BF 100%);
+        color: white;
+    }
+
+    .feature-card h4 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 1rem;
+    }
+
+    .feature-card p {
+        font-size: 0.95rem;
+        color: #6B7280;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .ai-cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 3rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-ai-primary {
+        background: #2E7FF3;
+        color: white;
+        padding: 15px 35px;
+        border-radius: 10px;
+        border: none;
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-ai-primary:hover {
+        background: #1E6FE3;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-ai-secondary {
+        background: transparent;
+        color: white;
+        padding: 15px 35px;
+        border-radius: 10px;
+        border: 2px solid white;
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-ai-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .ai-trading-section h2 {
+            font-size: 2rem;
+        }
+
+        .ai-trading-section .section-description {
+            font-size: 1rem;
+        }
+
+        .chart-card, .feature-card {
+            margin-bottom: 1rem;
+        }
+
+        .ai-cta-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .btn-ai-primary, .btn-ai-secondary {
+            width: 100%;
+            max-width: 300px;
+        }
+    }
 
 .footer-gradient {
     background: linear-gradient(135deg, #1559B4 0%, #4C8FF0 100%);
