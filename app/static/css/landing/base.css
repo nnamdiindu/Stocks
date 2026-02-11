@@ -25,7 +25,11 @@ body {
 .belief-div,
 .features-section,
 .faq-section,
-.contact-section {
+.contact-section,
+.about-us-div,
+.tech-people-section-div,
+.what-we-do-section-div,
+.mission-vision-section-div {
     margin: 0.625rem 0.725rem;
 
 }
