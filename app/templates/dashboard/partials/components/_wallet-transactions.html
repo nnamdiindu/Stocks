@@ -18,45 +18,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% set default_transactions = [
-                        {
-                            'type': 'Deposit',
-                            'description': 'Paypal',
-                            'amount': '$28,000',
-                            'status': 'Pending',
-                            'date': '20-12-2025'
-                        },
-                        {
-                            'type': 'Withdrawal',
-                            'description': 'Crypto',
-                            'amount': '$28,000',
-                            'status': 'Completed',
-                            'date': '20-12-2025'
-                        },
-                        {
-                            'type': 'Deposit',
-                            'description': 'Paypal',
-                            'amount': '$28,000',
-                            'status': 'Failed',
-                            'date': '20-12-2025'
-                        },
-                        {
-                            'type': 'Deposit',
-                            'description': 'Paypal',
-                            'amount': '$28,000',
-                            'status': 'Completed',
-                            'date': '20-12-2025'
-                        },
-                        {
-                            'type': 'Deposit',
-                            'description': 'Paypal',
-                            'amount': '$28,000',
-                            'status': 'Failed',
-                            'date': '20-12-2025'
-                        }
-                    ] %}
-
-                    {% for transaction in transactions|default(default_transactions) %}
+                    {% for transaction in transactions %}
                     <tr>
                         <td>
                             <span class="type-badge {{ transaction.type.lower() }}">
@@ -64,13 +26,13 @@
                             </span>
                         </td>
                         <td class="description-cell">{{ transaction.description }}</td>
-                        <td class="amount-cell">{{ transaction.amount }}</td>
+                        <td class="amount-cell">${{ transaction.amount }}</td>
                         <td>
                             <span class="status-badge {{ transaction.status.lower() }}">
                                 {{ transaction.status }}
                             </span>
                         </td>
-                        <td class="date-cell">{{ transaction.date }}</td>
+                        <td class="date-cell">{{ transaction.date.strftime('%d-%m-%Y') }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
