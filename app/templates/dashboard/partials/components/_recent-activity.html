@@ -1,176 +1,115 @@
 <div class="card">
-    <div class="card-header">
-        <div class="card-title">Recent Activity</div>
-        <a href="#" style="color: var(--primary-blue); text-decoration: none; font-weight: 500; font-size: 14px;">View
-            all</a>
+  <div class="card-header">
+    <div class="card-title">Recent Activity</div>
+    <a
+      href="#"
+      style="
+        color: var(--primary-blue);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 14px;
+      "
+      >View all</a
+    >
+  </div>
+
+  <!-- Desktop: Table View -->
+  <table class="activity-table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description <i class="fas fa-folder"></i></th>
+        <th>Reference <i class="fas fa-receipt"></i></th>
+        <th>Amount <i class="fas fa-money-bill-wave"></i></th>
+        <th>Status <i class="fas fa-check-circle"></i></th>
+        <th>Date <i class="fas fa-calendar"></i></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for transaction in transactions %}
+      <tr>
+        <!-- TYPE -->
+        <td>
+          <strong> {{ transaction.type }} </strong>
+        </td>
+
+        <!-- DESCRIPTION -->
+        <td>{{ transaction.description }}</td>
+
+        <!-- REFERENCE -->
+        <td>{{ transaction.order_id }}</td>
+
+        <!-- AMOUNT -->
+        <td
+          class="{% if transaction.amount > 0 %} amount-positive {% elif transaction.amount < 0 %} amount-negative {% endif %}"
+        >
+          {% if transaction.amount > 0 %} +${{
+          "{:,.0f}".format(transaction.amount) }} {% elif transaction.amount < 0
+          %} -${{ "{:,.0f}" .format(transaction.amount | abs) }} {% else %} - {%
+          endif %}
+        </td>
+
+        <!-- STATUS -->
+        <td>
+          <span class="status-badge {{ transaction.status.lower() }}">
+            {{ transaction.status }}
+          </span>
+        </td>
+
+        <!-- DATE -->
+        <td>{{ transaction.date.strftime('%d-%m-%Y') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Mobile: Card View -->
+  <div class="activity-cards">
+    <!-- Card 1 -->
+    {% for transaction in transactions %}
+
+    <div class="activity-card" onclick="this.classList.toggle('expanded')">
+      <!-- HEADER -->
+      <div class="activity-card-header">
+        <span class="activity-card-type"> {{ transaction.type }} </span>
+
+        <span
+          class="activity-card-amount {% if transaction.amount > 0 %} amount-positive {% elif transaction.amount < 0 %} amount-negative {% endif %}"
+        >
+          {% if transaction.amount > 0 %} +${{
+          "{:,.0f}".format(transaction.amount) }} {% elif transaction.amount < 0
+          %} -${{ "{:,.0f}".format(transaction.amount | abs) }} {% else %} - {%
+          endif %}
+        </span>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="activity-card-footer">
+        <span class="status-badge {{ transaction.status.lower() }}">
+          {{ transaction.status }}
+        </span>
+
+        <span class="activity-card-date">
+          {{ transaction.date.strftime('%d-%m-%Y') }}
+        </span>
+      </div>
+
+      <!-- EXPANDABLE DETAILS -->
+      <div class="activity-card-details">
+        <div class="activity-detail-row">
+          <span class="activity-detail-label">Description:</span>
+          <span class="activity-detail-value">
+            {{ transaction.description }}
+          </span>
+        </div>
+
+        <div class="activity-detail-row">
+          <span class="activity-detail-label">Reference:</span>
+          <span class="activity-detail-value">
+            {{ transaction.order_id }}
+          </span>
+        </div>
+      </div>
     </div>
-
-    <!-- Desktop: Table View -->
-    <table class="activity-table">
-        <thead>
-            <tr>
-                <th>Type</th>
-                <th>Description <i class="fas fa-folder"></i></th>
-                <th>Reference <i class="fas fa-receipt"></i></th>
-                <th>Amount <i class="fas fa-money-bill-wave"></i></th>
-                <th>Status <i class="fas fa-check-circle"></i></th>
-                <th>Date <i class="fas fa-calendar"></i></th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><strong>Trade (Buy)</strong></td>
-                <td>Bought Apple (AAPL)</td>
-                <td>Order #TRX-98423</td>
-                <td class="amount-negative">-$75,000</td>
-                <td><span class="status-badge completed">Completed</span></td>
-                <td>Today, 09:15 AM</td>
-            </tr>
-            <tr>
-                <td><strong>Trade (Sell)</strong></td>
-                <td>Sold Tesla (TSLA)</td>
-                <td>Order #TRX-98410</td>
-                <td class="amount-positive">+$32,000</td>
-                <td><span class="status-badge failed">Failed</span></td>
-                <td>20-12-2025</td>
-            </tr>
-            <tr>
-                <td><strong>Deposit</strong></td>
-                <td>Wallet Funded via Bank Transfer</td>
-                <td>Ref #DEP-57211</td>
-                <td class="amount-positive">+$100,000</td>
-                <td><span class="status-badge completed">Completed</span></td>
-                <td>20-12-2025</td>
-            </tr>
-            <tr>
-                <td><strong>Withdrawal</strong></td>
-                <td>Withdrawal to GTBank ····4821</td>
-                <td>Ref #WTH-33109</td>
-                <td class="amount-negative">-$50,000</td>
-                <td><span class="status-badge pending">Pending</span></td>
-                <td>20-12-2025</td>
-            </tr>
-            <tr>
-                <td><strong>Security</strong></td>
-                <td>New Login Detected (Lagos, NG)</td>
-                <td>Session ID #SEC-771</td>
-                <td>-</td>
-                <td><span class="status-badge alert">Alert</span></td>
-                <td>20-12-2025</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <!-- Mobile: Card View -->
-    <div class="activity-cards">
-        <!-- Card 1 -->
-        <div class="activity-card" onclick="this.classList.toggle('expanded')">
-            <div class="activity-card-header">
-                <span class="activity-card-type">Trade (Buy)</span>
-                <span class="activity-card-amount amount-negative">-$75,000</span>
-            </div>
-            <div class="activity-card-footer">
-                <span class="status-badge completed">Completed</span>
-                <span class="activity-card-date">Today, 09:15 AM</span>
-            </div>
-            <div class="activity-card-details">
-                <div class="activity-detail-row">
-                    <span class="activity-detail-label">Description:</span>
-                    <span class="activity-detail-value">Bought Apple (AAPL)</span>
-                </div>
-                <div class="activity-detail-row">
-                    <span class="activity-detail-label">Reference:</span>
-                    <span class="activity-detail-value">Order #TRX-98423</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 2 -->
-        <div class="activity-card" onclick="this.classList.toggle('expanded')">
-            <div class="activity-card-header">
-                <span class="activity-card-type">Trade (Sell)</span>
-                <span class="activity-card-amount amount-positive">+$32,000</span>
-            </div>
-            <div class="activity-card-footer">
-                <span class="status-badge failed">Failed</span>
-                <span class="activity-card-date">20-12-2025</span>
-            </div>
-            <div class="activity-card-details">
-                <div class="activity-detail-row">
-                    <span class="activity-detail-label">Description:</span>
-                    <span class="activity-detail-value">Sold Tesla (TSLA)</span>
-                </div>
-                <div class="activity-detail-row">
-                    <span class="activity-detail-label">Reference:</span>
-                    <span class="activity-detail-value">Order #TRX-98410</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 3 -->
-        <div class="activity-card" onclick="this.classList.toggle('expanded')">
-            <div class="activity-card-header">
-                <span class="activity-card-type">Deposit</span>
-                <span class="activity-card-amount amount-positive">+$100,000</span>
-            </div>
-            <div class="activity-card-footer">
-                <span class="status-badge completed">Completed</span>
-                <span class="activity-card-date">20-12-2025</span>
-            </div>
-            <div class="activity-card-details">
-                <div class="activity-detail-row">
-                    <span class="activity-detail-label">Description:</span>
-                    <span class="activity-detail-value">Wallet Funded via Bank Transfer</span>
-                </div>
-                <div class="activity-detail-row">
-                    <span class="activity-detail-label">Reference:</span>
-                    <span class="activity-detail-value">Ref #DEP-57211</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 4 -->
-        <div class="activity-card" onclick="this.classList.toggle('expanded')">
-            <div class="activity-card-header">
-                <span class="activity-card-type">Withdrawal</span>
-                <span class="activity-card-amount amount-negative">-$50,000</span>
-            </div>
-            <div class="activity-card-footer">
-                <span class="status-badge pending">Pending</span>
-                <span class="activity-card-date">20-12-2025</span>
-            </div>
-            <div class="activity-card-details">
-                <div class="activity-detail-row">
-                    <span class="activity-detail-label">Description:</span>
-                    <span class="activity-detail-value">Withdrawal to GTBank ····4821</span>
-                </div>
-                <div class="activity-detail-row">
-                    <span class="activity-detail-label">Reference:</span>
-                    <span class="activity-detail-value">Ref #WTH-33109</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 5 -->
-        <div class="activity-card" onclick="this.classList.toggle('expanded')">
-            <div class="activity-card-header">
-                <span class="activity-card-type">Security</span>
-                <span class="activity-card-amount">-</span>
-            </div>
-            <div class="activity-card-footer">
-                <span class="status-badge alert">Alert</span>
-                <span class="activity-card-date">20-12-2025</span>
-            </div>
-            <div class="activity-card-details">
-                <div class="activity-detail-row">
-                    <span class="activity-detail-label">Description:</span>
-                    <span class="activity-detail-value">New Login Detected (Lagos, NG)</span>
-                </div>
-                <div class="activity-detail-row">
-                    <span class="activity-detail-label">Reference:</span>
-                    <span class="activity-detail-value">Session ID #SEC-771</span>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% endfor %}
 </div>
