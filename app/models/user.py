@@ -70,6 +70,21 @@ class User(UserMixin, db.Model):
         cascade="all, delete-orphan",
         uselist=False  # One-to-one relationship
     )
+
+    # NOWPayments Relationship
+    crypto_payments: Mapped[list["CryptoPayment"]] = relationship(
+        "CryptoPayment",
+        back_populates="user",
+        lazy="dynamic",
+        cascade="all, delete-orphan"
+    )
+
+    transactions: Mapped[list["Transaction"]] = relationship(
+        "Transaction",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+
     # account = relationship("UserAccount", back_populates="user", uselist=False)
     # holdings = relationship("UserHolding", back_populates="user", cascade="all, delete-orphan")
     # stock_transactions = relationship("StockTransaction", back_populates="user", cascade="all, delete-orphan")
