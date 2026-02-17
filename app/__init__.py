@@ -36,6 +36,25 @@ def create_app():
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     app.config["PERMANENT_SESSION_LIFETIME"] = 86400  # 24 hours
 
+    # NOWPayments Configuration
+    # API Credentials
+    app.config["NOWPAYMENTS_API_KEY"] = os.environ.get("NOWPAYMENTS_API_KEY", "")
+    app.config["NOWPAYMENTS_IPN_SECRET"] = os.environ.get("NOWPAYMENTS_IPN_SECRET", "")
+
+    # Environment
+    app.config["NOWPAYMENTS_SANDBOX"] = os.environ.get("NOWPAYMENTS_SANDBOX", "False").lower() == "true"
+
+    # Webhook/Callback URLs
+    app.config["NOWPAYMENTS_IPN_CALLBACK_URL"] = os.environ.get("NOWPAYMENTS_IPN_CALLBACK_URL", "")
+    app.config["NOWPAYMENTS_SUCCESS_URL"] = os.environ.get("NOWPAYMENTS_SUCCESS_URL", "/payments/success")
+    app.config["NOWPAYMENTS_CANCEL_URL"] = os.environ.get("NOWPAYMENTS_CANCEL_URL", "/payments/cancel")
+
+    # Currency & Payment Settings
+    app.config["NOWPAYMENTS_DEFAULT_CURRENCY"] = os.environ.get("NOWPAYMENTS_DEFAULT_CURRENCY", "USD")
+    app.config["NOWPAYMENTS_FEE_PAID_BY_USER"] = os.environ.get("NOWPAYMENTS_FEE_PAID_BY_USER",
+                                                                "True").lower() == "true"
+    app.config["NOWPAYMENTS_FIXED_RATE"] = os.environ.get("NOWPAYMENTS_FIXED_RATE", "True").lower() == "true"
+
     # Initialize database
     db.init_app(app)
     migrate = Migrate(app, db)
@@ -62,18 +81,21 @@ def create_app():
         ).scalar_one_or_none()
 
     from app import models
+    from app.models import payment, user, transaction
 
     # REGISTER BLUEPRINTS
     from app.routes.auth import auth_bp
     from app.routes.main import main_bp
     from app.routes.dashboard import dashboard_bp
     from app.routes.notifications import notifications_bp
+    from app.routes.payments import payment_bp
 
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(notifications_bp)
+    app.register_blueprint(payment_bp)
 
     # CREATE DATABASE TABLES
     with app.app_context():
