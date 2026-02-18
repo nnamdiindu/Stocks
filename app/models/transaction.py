@@ -9,20 +9,23 @@ class Transaction(db.Model):
     __tablename__ = "transactions"
 
     __table_args__ = (
-        Index("idx_tx_user_id", "user_id"),
+        Index("idx_tx_user_id", "order_id"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
 
     # The 5 fields that appear in your transaction history table
     type: Mapped[str] = mapped_column(String(50), nullable=False)           # e.g. "Deposit"
     description: Mapped[str] = mapped_column(String(255), nullable=False)   # e.g. "Crypto"
     amount: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False) # e.g. 100.00
     status: Mapped[str] = mapped_column(String(30), nullable=False, default="pending")
-    date: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
-
+    date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc)
+    )
     # Links back to the NOWPayments record so you can look it up if needed
     order_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
