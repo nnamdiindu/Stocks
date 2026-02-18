@@ -298,61 +298,79 @@ def payment_status(order_id):
 
 def _sync_payment_status(payment: CryptoPayment) -> bool:
     """
-    Internal helper — fetch the latest status from NOWPayments and
-    update the database record if the status has changed.
+    Fetch the latest payment status from NOWPayments and update the DB if changed.
 
-    The underscore prefix (_sync_payment_status) signals that this is
-    an internal helper, not a route or public API.
+    Only works once a payment_id exists in the database (set by the first IPN callback).
+    For invoice payments with no payment_id yet, this returns False gracefully —
+    there is no API endpoint available to poll without a JWT token.
 
     Args:
-        payment: The CryptoPayment instance to sync (must be pending)
+        payment: A pending CryptoPayment instance
 
     Returns:
-        True if the status changed and was updated, False otherwise
-        (including if the API call failed — caller doesn't need to know)
+        True if status was updated, False otherwise
     """
     try:
-        np_service = get_nowpayments_service()
-        old_status = payment.payment_status
-
-        if payment.payment_id:
-            status_response = np_service.get_payment_status(int(payment.payment_id))
-            new_status = status_response.get("payment_status")
-
-        elif payment.invoice_id:
-            invoice_response = np_service.get_invoice(payment.invoice_id)
-            new_status = invoice_response.get("status")
-
-        else:
-            # No ID to poll with — nothing we can do
-            current_app.logger.warning(
-                f"Cannot sync payment {payment.order_id} — "
-                f"no payment_id or invoice_id available yet"
+        # If we have no payment_id, we cannot poll NOWPayments
+        # LEARNING NOTE — Why not try the order_id search endpoint?
+        # ----------------------------------------------------------
+        # GET /payment?orderid= requires JWT Bearer authentication.
+        # We only have an API key. Calling it returns 401.
+        # The previous version tried this and logged a warning every 30 seconds.
+        # The correct behaviour is to simply skip polling and wait for the IPN.
+        if not payment.payment_id:
+            current_app.logger.info(
+                f"Skipping sync for {payment.order_id} — "
+                f"no payment_id yet, waiting for first IPN callback from NOWPayments"
             )
             return False
 
-        # Only update if the status actually changed — avoid unnecessary DB writes
-        if new_status and new_status != old_status:
-            current_app.logger.info(
-                f"Status sync: {payment.order_id} changed "
-                f"{old_status} → {new_status} (detected on page load/poll)"
-            )
+        np_service = get_nowpayments_service()
+        old_status = payment.payment_status
 
-            payment.payment_status = new_status
-            payment.updated_at = datetime.now(timezone.utc)
-            if is_payment_completed(payment):
-                handle_payment_completed(payment)
-            elif is_payment_failed(payment):
-                handle_payment_failed(payment)
-            elif new_status == PaymentStatus.EXPIRED:
-                handle_payment_expired(payment)
+        # Poll the single endpoint we're authorised to use
+        status_response = np_service.get_payment_status(int(payment.payment_id))
+        new_status = status_response.get("payment_status")
 
-            db.session.commit()
-            return True
+        if not new_status or new_status == old_status:
+            # No change — nothing to do
+            return False
 
-        return False
+        # Status has changed — update all relevant fields from the response
+        current_app.logger.info(
+            f"Status sync: {payment.order_id} {old_status} → {new_status}"
+        )
+
+        payment.payment_status = new_status
+        payment.updated_at = datetime.now(timezone.utc)
+
+        # Sync additional payment fields if NOWPayments returned them
+        # Using explicit checks so we don't overwrite good data with None
+        if status_response.get("actually_paid") is not None:
+            payment.actually_paid = status_response.get("actually_paid")
+        if status_response.get("pay_amount") is not None:
+            payment.pay_amount = status_response.get("pay_amount")
+        if status_response.get("outcome_amount") is not None:
+            payment.outcome_amount = status_response.get("outcome_amount")
+        if status_response.get("outcome_currency"):
+            payment.outcome_currency = status_response.get("outcome_currency")
+
+        # Trigger business logic — same handlers the webhook calls
+        # This self-heals cases where the IPN arrived but the status handler
+        # failed (e.g. email error), or where status advanced past "confirmed"
+        # to "finished" before a webhook arrived for that specific transition
+        if is_payment_completed(payment):
+            handle_payment_completed(payment)
+        elif is_payment_failed(payment):
+            handle_payment_failed(payment)
+        elif new_status == PaymentStatus.EXPIRED:
+            handle_payment_expired(payment)
+
+        db.session.commit()
+        return True
 
     except Exception as e:
+        # Swallow errors so a NOWPayments API outage never breaks the invoice page
         current_app.logger.warning(
             f"Status sync failed for {payment.order_id}: {str(e)} "
             f"— page will render with cached DB status"
