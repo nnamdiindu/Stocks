@@ -62,14 +62,24 @@ class NOWPaymentsService:
             response.raise_for_status()
             return response.json()
 
+
         except requests.exceptions.HTTPError as e:
-            error_msg = f"API Error: {e.response.status_code}"
+            # Extract a meaningful error message from the API's JSON response if possible
+            error_msg = f"NOWPayments API Error {e.response.status_code}"
             try:
                 error_data = e.response.json()
-                error_msg += f" - {error_data.get('message', str(error_data))}"
-            except:
-                error_msg += f" - {e.response.text}"
+                error_msg += f" — {error_data.get('message', str(error_data))}"
+            except Exception:
+                # If the response isn't valid JSON, fall back to raw text
+                error_msg += f" — {e.response.text}"
             raise Exception(error_msg)
+
+        except requests.exceptions.ConnectionError:
+            raise Exception("Could not connect to NOWPayments API. Check your internet connection.")
+
+        except requests.exceptions.Timeout:
+            raise Exception("NOWPayments API request timed out. Please try again.")
+
         except Exception as e:
             raise Exception(f"Request failed: {str(e)}")
 
@@ -281,7 +291,7 @@ class NOWPaymentsService:
             List of payments matching the order_id
         """
         params = {"orderid": order_id}
-        return self._make_request("GET", "payment", params)
+        return self._make_request("GET","payment", params)
 
     def get_list_of_payments(
             self,
@@ -296,7 +306,7 @@ class NOWPaymentsService:
         Get list of payments with pagination
 
         Args:
-            limit: Number of records per page
+            limit: Number of records per pagee
             page: Page number
             sort_by: Field to sort by
             order_by: Sort direction (asc/desc)
@@ -320,6 +330,7 @@ class NOWPaymentsService:
 
         return self._make_request("GET", "payment", params)
 
+
     # ============= Invoice Management =============
 
     def get_invoice(self, invoice_id: int) -> Dict:
@@ -333,6 +344,67 @@ class NOWPaymentsService:
             Invoice details
         """
         return self._make_request("GET", f"invoice/{invoice_id}")
+
+
+    # ============= Webhook / IPN Verification =============
+    def verify_ipn_signature(self, request_data: bytes, signature: str) -> bool:
+        """
+        Verify IPN callback signature
+
+        Args:
+            request_data: Raw request body as bytes
+            signature: x-nowpayments-sig header value
+
+        Returns:
+            True if signature is valid, False otherwise
+        """
+        if not self.ipn_secret:
+            raise ValueError(
+                "IPN secret is not configured. "
+            )
+
+        try:
+            payload_dict = json.loads(request_data.decode("utf-8"))
+
+            sorted_payload = json.dumps(payload_dict, sort_keys=True, separators=(',', ':'))
+
+            expected_sig = hmac.new(
+                self.ipn_secret.encode("utf-8"),
+                sorted_payload.encode("utf-8"),
+                hashlib.sha512
+            ).hexdigest()
+
+            return hmac.compare_digest(signature, expected_sig)
+
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            raise Exception(f"Failed to parse IPN payload for signature verification: {str(e)}")
+
+    def process_ipn_callback(self, request_data: bytes, signature: str) -> Dict:
+        """
+        Verify and parse an IPN callback in one step.
+
+        This is the main entry point for your webhook route. It:
+          1. Verifies the signature (rejects fakes immediately)
+          2. Parses and returns the payload if valid
+
+        Args:
+            request_data: Raw bytes from request.get_data()
+            signature:    Value from "x-nowpayments-sig" header
+
+        Returns:
+            Parsed callback data as a dictionary
+
+        Raises:
+            Exception: If signature is invalid — DO NOT process the payment in this case
+        """
+        if not self.verify_ipn_signature(request_data, signature):
+            raise Exception(
+                "Invalid IPN signature. This request may not have come from NOWPayments."
+            )
+
+        # Signature verified — safe to parse and return the payload
+        return json.loads(request_data.decode("utf-8"))
+
 
     # ============= Payout Management =============
 
@@ -374,50 +446,6 @@ class NOWPaymentsService:
         """
         return self._make_request("GET", f"payout/{payout_id}")
 
-    # ============= Webhook Verification =============
-
-    def verify_ipn_signature(self, request_data: bytes, signature: str) -> bool:
-        """
-        Verify IPN callback signature
-
-        Args:
-            request_data: Raw request body as bytes
-            signature: x-nowpayments-sig header value
-
-        Returns:
-            True if signature is valid, False otherwise
-        """
-        if not self.ipn_secret:
-            raise ValueError("IPN secret not configured")
-
-        # Calculate expected signature
-        expected_sig = hmac.new(
-            self.ipn_secret.encode("utf-8"),
-            request_data,
-            hashlib.sha512
-        ).hexdigest()
-
-        return hmac.compare_digest(signature, expected_sig)
-
-    def process_ipn_callback(self, request_data: bytes, signature: str) -> Dict:
-        """
-        Process and verify IPN callback
-
-        Args:
-            request_data: Raw request body as bytes
-            signature: x-nowpayments-sig header value
-
-        Returns:
-            Parsed and verified callback data
-
-        Raises:
-            Exception: If signature verification fails
-        """
-        if not self.verify_ipn_signature(request_data, signature):
-            raise Exception("Invalid IPN signature")
-
-        return json.loads(request_data.decode("utf-8"))
-
 
 # ============= Payment Status Constants =============
 
@@ -432,6 +460,11 @@ class PaymentStatus:
     FAILED = "failed"
     REFUNDED = "refunded"
     EXPIRED = "expired"
+
+    # Convenience groupings for use in your route logic
+    COMPLETED_STATUSES = {FINISHED, CONFIRMED}
+    PENDING_STATUSES = {WAITING, CONFIRMING, SENDING}
+    FAILED_STATUSES = {FAILED, EXPIRED, REFUNDED}
 
 
 class InvoiceStatus:
