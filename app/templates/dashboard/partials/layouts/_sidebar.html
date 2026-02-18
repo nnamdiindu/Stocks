@@ -4,7 +4,8 @@
 <!-- Sidebar -->
 <div class="sidebar">
     <div class="logo">
-        <img src="../../static/images/StocksCo-logo.png" alt="StocksCo logo" max-width="=30px" height="40px">
+        <img src="{{ url_for('static', filename='images/StocksCo-logo.png') }}" alt="StocksCo logo" max-width="=30px" height="40px">
+
     </div>
 
     <a href="{{ url_for('dashboard.invest') }}" class="new-investment-btn text-decoration-none">
