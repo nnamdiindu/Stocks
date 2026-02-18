@@ -1,12 +1,18 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
+from flask import Blueprint, request, jsonify, render_template, url_for, flash, current_app
 from flask_login import login_required, current_user
 from datetime import datetime, timezone
 import uuid
-from app.models import Notification
+from app.models.notifications import Notification
+from app.models.user import User
 from app.utils.nowpayments import NOWPaymentsService, PaymentStatus
 from app.models.payment import (
-    db, CryptoPayment, PaymentCallback,
-    payment_to_dict, is_payment_completed, is_payment_pending, is_payment_failed
+    db,
+    CryptoPayment,
+    PaymentCallback,
+    payment_to_dict,
+    is_payment_completed,
+    is_payment_pending,
+    is_payment_failed
 )
 from app.utils.transactions import TransactionService
 
@@ -14,7 +20,7 @@ from app.utils.transactions import TransactionService
 payment_bp = Blueprint("payments", __name__, url_prefix="/dashboard/payments")
 
 
-def get_nowpayments_service():
+def get_nowpayments_service() -> NOWPaymentsService:
     """Initialize NOWPayments service with app config"""
     return NOWPaymentsService(
         api_key=current_app.config["NOWPAYMENTS_API_KEY"],
@@ -41,11 +47,35 @@ def create_deposit():
     try:
         data = request.get_json()
 
-        # Log received data for debugging
-        current_app.logger.info(f"Deposit request from user {current_user.id}: {data}")
-        amount = float(data.get("amount", 0))
+        if not data:
+            return jsonify({
+                "success": False,
+                "error": "Request body must be valid JSON."
+            }), 400
 
-        # Check minimum amount
+            # Validate required fields are present
+        if "amount" not in data:
+            return jsonify({
+                "success": False,
+                "error": "Missing required field: amount"
+            }), 400
+
+
+        try:
+            amount = float(data["amount"])
+        except (ValueError, TypeError):
+            return jsonify({
+                "success": False,
+                "error": "Amount must be a valid number."
+            }), 400
+
+        if amount <= 0:
+            return jsonify({
+                "success": False,
+                "error": "Amount must be greater than zero."
+            }), 400
+
+            # Minimum deposit check — crypto network fees make tiny deposits uneconomical
         MIN_DEPOSIT = 20.00
         if amount < MIN_DEPOSIT:
             return jsonify({
@@ -53,67 +83,56 @@ def create_deposit():
                 "error": f"Minimum deposit is ${MIN_DEPOSIT:.2f} due to blockchain network fees."
             }), 400
 
-        # Validate required fields
-        if not data or "amount" not in data:
-            return jsonify({
-                "success": False,
-                "error": "Missing required field: amount"
-            }), 400
-
-        # Extract and validate amount
-        amount = data.get("amount")
-        if not amount or float(amount) <= 0:
-            return jsonify({
-                "success": False,
-                "error": "Invalid amount. Please enter a valid deposit amount."
-            }), 400
-
-        # Get currency (default to USD)
-        currency = data.get("currency", "USD")
-
-        # Get payment method
+        # Extract remaining fields with safe defaults
+        currency = data.get("currency", "USD").upper()
         payment_method = data.get("payment_method", "crypto")
+        pay_currency = data.get("pay_currency")  # Optional — None triggers invoice flow
+        description = data.get(
+            "description",
+            f"Account Deposit — {current_user.username}"
+        )
 
-        # Handle different payment methods
+        # Only cryptocurrency deposits are supported currently
         if payment_method == "card":
-            # Bank Transfer payments not implemented yet
             return jsonify({
                 "success": False,
                 "error": "Bank transfer payments are not available yet. Please use cryptocurrency."
-            }), 501
+            }), 501  # 501 Not Implemented is more accurate than 400 Bad Request here
 
-        # Handle cryptocurrency payments
         if payment_method != "crypto":
             return jsonify({
                 "success": False,
-                "error": "Invalid payment method. Please select cryptocurrency."
+                "error": "Invalid payment method. Only 'crypto' is supported."
             }), 400
 
-        # Generate order ID
         order_id = f"DEPOSIT-{uuid.uuid4().hex[:8].upper()}"
 
-        # Generate description
-        description = data.get("description", f"Account Deposit - {current_user.username}")
+        current_app.logger.info(
+            f"Deposit request: user={current_user.id}, amount={amount} {currency}, "
+            f"method={payment_method}, order_id={order_id}"
+        )
 
-        # Initialize NOWPayments service
-        np_service = get_nowpayments_service()
-
-        # Get callback URLs
-        ipn_callback_url = current_app.config.get("NOWPAYMENTS_IPN_CALLBACK_URL")
-        if ipn_callback_url and not ipn_callback_url.startswith("http"):
-            ipn_callback_url = request.url_root.rstrip('/') + ipn_callback_url
+        ipn_callback_url = current_app.config.get("NOWPAYMENTS_IPN_CALLBACK_URL", "")
+        if not ipn_callback_url:
+            # Auto-construct the webhook URL from the current request's host
+            ipn_callback_url = request.url_root.rstrip("/") + url_for("payments.ipn_callback")
+        elif not ipn_callback_url.startswith("http"):
+            # Config has a relative path — make it absolute
+            ipn_callback_url = request.url_root.rstrip("/") + ipn_callback_url
 
         success_url = request.url_root.rstrip("/") + url_for("payments.payment_success")
         cancel_url = request.url_root.rstrip("/") + url_for("payments.payment_cancel")
 
-        # Check if specific cryptocurrency was requested
-        pay_currency = data.get("pay_currency")
+        # Initialize the service
+        np_service = get_nowpayments_service()
 
         if pay_currency:
-            # Create direct payment with specific currency
+            # --- Direct Payment Flow ---
+            # User specified a crypto (e.g. "eth") — create a direct payment
+            # NOWPayments returns a wallet address and exact crypto amount to send
             payment_response = np_service.create_payment(
-                price_amount=float(amount),
-                price_currency=currency.upper(),
+                price_amount=amount,
+                price_currency=currency,
                 pay_currency=pay_currency.lower(),
                 order_id=order_id,
                 order_description=description,
@@ -124,13 +143,22 @@ def create_deposit():
                 is_fee_paid_by_user=current_app.config.get("NOWPAYMENTS_FEE_PAID_BY_USER", True)
             )
 
-            # Save to database
+            # Parse the expiration date safely
+            # NOWPayments returns ISO format with "Z" suffix (UTC) which Python's
+            # fromisoformat() doesn't handle before Python 3.11 — replace "Z" with "+00:00"
+            expiration = None
+            if payment_response.get("expiration_estimate_date"):
+                expiration = datetime.fromisoformat(
+                    payment_response["expiration_estimate_date"].replace("Z", "+00:00")
+                )
+
+            # Save payment record to database
             payment = CryptoPayment(
                 payment_id=str(payment_response.get("payment_id")),
                 order_id=order_id,
                 user_id=current_user.id,
-                price_amount=float(amount),
-                price_currency=currency.upper(),
+                price_amount=amount,
+                price_currency=currency,
                 pay_amount=payment_response.get("pay_amount"),
                 pay_currency=payment_response.get("pay_currency"),
                 payment_status=payment_response.get("payment_status", "waiting"),
@@ -140,16 +168,16 @@ def create_deposit():
                 order_description=description,
                 success_url=success_url,
                 cancel_url=cancel_url,
-                expiration_estimate_date=datetime.fromisoformat(
-                    payment_response["expiration_estimate_date"].replace("Z", "+00:00")
-                ) if payment_response.get("expiration_estimate_date") else None
+                expiration_estimate_date=expiration
             )
 
         else:
-            # Create invoice (user chooses cryptocurrency on NOWPayments page)
+            # --- Invoice Flow ---
+            # No crypto specified — create a hosted invoice page
+            # User will be redirected to NOWPayments to pick their preferred crypto
             invoice_response = np_service.create_invoice(
-                price_amount=float(amount),
-                price_currency=currency.upper(),
+                price_amount=amount,
+                price_currency=currency,
                 order_id=order_id,
                 order_description=description,
                 ipn_callback_url=ipn_callback_url,
@@ -159,13 +187,17 @@ def create_deposit():
                 is_fixed_rate=current_app.config.get("NOWPAYMENTS_FIXED_RATE", True)
             )
 
-            # Save to database
+            # LEARNING NOTE — Invoice response uses "id" not "invoice_id"
+            # -------------------------------------------------------------
+            # The NOWPayments invoice creation endpoint returns the invoice ID
+            # in a field called "id" (not "invoice_id"). We store it in our
+            # invoice_id column. Always check API docs for exact field names.
             payment = CryptoPayment(
                 invoice_id=str(invoice_response.get("id")),
                 order_id=order_id,
                 user_id=current_user.id,
-                price_amount=float(amount),
-                price_currency=currency.upper(),
+                price_amount=amount,
+                price_currency=currency,
                 payment_status="waiting",
                 payment_type="invoice",
                 invoice_url=invoice_response.get("invoice_url"),
@@ -174,60 +206,47 @@ def create_deposit():
                 cancel_url=cancel_url
             )
 
+            # ============= DATABASE PERSISTENCE =============
+
         db.session.add(payment)
+        TransactionService.create_deposit(payment)
         db.session.commit()
 
-        current_app.logger.info(f"Payment created successfully: {order_id}")
-        # Create transaction record for history table
+        current_app.logger.info(f"CryptoPayment saved to DB: order_id={order_id}, id={payment.id}")
+
+        # Create a matching transaction record for the portfolio history table
         TransactionService.create_deposit(payment)
 
+        # ============= BUILD RESPONSE =============
 
-        # Return response with invoice URL for redirect
-        # return jsonify({
-        #     "success": True,
-        #     "payment_id": payment.id,
-        #     "order_id": order_id,
-        #     "invoice_url": payment.invoice_url if payment.payment_type == "invoice" else None,
-        #     "pay_address": payment.pay_address if payment.payment_type == "payment" else None,
-        #     "pay_amount": payment.pay_amount if payment.payment_type == "payment" else None,
-        #     "pay_currency": payment.pay_currency if payment.payment_type == "payment" else None,
-        #     "payment_status": payment.payment_status,
-        #     "amount": float(amount),
-        #     "currency": currency.upper()
-        # }), 201
-
-        # except Exception as e:
-        # current_app.logger.error(f"Deposit creation error: {str(e)}", exc_info=True)
-        # return jsonify({
-        #     "success": False,
-        #     "error": f"Failed to create deposit: {str(e)}"
-        # }), 500
-
-        # FIXED: Return response with correct invoice_id
+        # Start with fields common to both payment types
         response_data = {
             "success": True,
-            "payment_id": payment.id,  # Database ID
+            "payment_id": payment.id,
             "order_id": order_id,
             "payment_status": payment.payment_status,
-            "amount": float(amount),
-            "currency": currency.upper()
+            "amount": amount,
+            "currency": currency
         }
 
-        # Add invoice-specific data
+        # Add type-specific fields the frontend needs for redirect/display
         if payment.payment_type == "invoice":
-            response_data["invoice_id"] = payment.invoice_id  # NOWPayments invoice ID
+            # Frontend should redirect user to this URL
+            response_data["invoice_id"] = payment.invoice_id
             response_data["invoice_url"] = payment.invoice_url
 
-        # Add payment-specific data
         if payment.payment_type == "payment":
+            # Frontend should show these details for manual crypto transfer
             response_data["pay_address"] = payment.pay_address
             response_data["pay_amount"] = payment.pay_amount
             response_data["pay_currency"] = payment.pay_currency
 
-        return jsonify(response_data), 201
+        return jsonify(response_data), 201  # 201 Created is correct for resource creation
 
     except Exception as e:
-        current_app.logger.error(f"Deposit creation error: {str(e)}", exc_info=True)
+        current_app.logger.error(f"Deposit creation failed: {str(e)}", exc_info=True)
+        # Roll back any partial DB writes so we don't leave orphaned records
+        db.session.rollback()
         return jsonify({
             "success": False,
             "error": f"Failed to create deposit: {str(e)}"
@@ -236,7 +255,7 @@ def create_deposit():
 
 
 
-@payment_bp.route("/invoice/<int:invoice_id>")
+@payment_bp.route("/invoice/<string:invoice_id>")
 @login_required
 def view_invoice(invoice_id):
     """View invoice payment page"""
@@ -244,6 +263,8 @@ def view_invoice(invoice_id):
         invoice_id=str(invoice_id),
         user_id=current_user.id
     ).first_or_404()
+    if is_payment_pending(payment):
+        _sync_payment_status(payment)
 
     return render_template("dashboard/payments/invoice.html",
                            payment=payment,
@@ -256,37 +277,87 @@ def view_invoice(invoice_id):
 @payment_bp.route("/status/<order_id>")
 @login_required
 def payment_status(order_id):
-    """Check payment status"""
+    """
+    Fetch and return the current status of a payment.
+    Polls NOWPayments API directly for the freshest data.
+    """
     payment = CryptoPayment.query.filter_by(
         order_id=order_id,
         user_id=current_user.id
     ).first_or_404()
 
-    # Fetch latest status from NOWPayments
+    if is_payment_pending(payment):
+        _sync_payment_status(payment)
+
+
+    return jsonify({
+        "success": True,
+        "payment": payment_to_dict(payment)
+    })
+
+
+def _sync_payment_status(payment: CryptoPayment) -> bool:
+    """
+    Internal helper — fetch the latest status from NOWPayments and
+    update the database record if the status has changed.
+
+    The underscore prefix (_sync_payment_status) signals that this is
+    an internal helper, not a route or public API.
+
+    Args:
+        payment: The CryptoPayment instance to sync (must be pending)
+
+    Returns:
+        True if the status changed and was updated, False otherwise
+        (including if the API call failed — caller doesn't need to know)
+    """
     try:
         np_service = get_nowpayments_service()
+        old_status = payment.payment_status
 
         if payment.payment_id:
             status_response = np_service.get_payment_status(int(payment.payment_id))
+            new_status = status_response.get("payment_status")
 
-            # Update payment record
-            payment.payment_status = status_response.get("payment_status")
-            payment.actually_paid = status_response.get("actually_paid")
-            payment.updated_at = lambda: datetime.now(timezone.utc)
+        elif payment.invoice_id:
+            invoice_response = np_service.get_invoice(payment.invoice_id)
+            new_status = invoice_response.get("status")
+
+        else:
+            # No ID to poll with — nothing we can do
+            current_app.logger.warning(
+                f"Cannot sync payment {payment.order_id} — "
+                f"no payment_id or invoice_id available yet"
+            )
+            return False
+
+        # Only update if the status actually changed — avoid unnecessary DB writes
+        if new_status and new_status != old_status:
+            current_app.logger.info(
+                f"Status sync: {payment.order_id} changed "
+                f"{old_status} → {new_status} (detected on page load/poll)"
+            )
+
+            payment.payment_status = new_status
+            payment.updated_at = datetime.now(timezone.utc)
+            if is_payment_completed(payment):
+                handle_payment_completed(payment)
+            elif is_payment_failed(payment):
+                handle_payment_failed(payment)
+            elif new_status == PaymentStatus.EXPIRED:
+                handle_payment_expired(payment)
+
             db.session.commit()
+            return True
 
-        return jsonify({
-            "success": True,
-            "payment": payment_to_dict(payment)
-        })
+        return False
 
     except Exception as e:
-        current_app.logger.error(f"Status check error: {str(e)}")
-        return jsonify({
-            "success": False,
-            "payment": payment_to_dict(payment),
-            "error": str(e)
-        })
+        current_app.logger.warning(
+            f"Status sync failed for {payment.order_id}: {str(e)} "
+            f"— page will render with cached DB status"
+        )
+        return False
 
 
 @payment_bp.route("/list")
@@ -316,9 +387,10 @@ def ipn_callback():
         request_data = request.get_data()
         signature = request.headers.get("x-nowpayments-sig")
 
+        # Reject immediately if no signature is present
         if not signature:
-            current_app.logger.error("Missing IPN signature")
-            return jsonify({"error": "Missing signature"}), 400
+            current_app.logger.warning("IPN callback received with no signature header")
+            return jsonify({"error": "Missing x-nowpayments-sig header"}), 400
 
         # Verify and process callback
         np_service = get_nowpayments_service()
@@ -330,8 +402,12 @@ def ipn_callback():
         ).first()
 
         if not payment:
-            current_app.logger.warning(f"Payment not found: {callback_data.get('payment_id')}")
-            return jsonify({"error": "Payment not found"}), 404
+            current_app.logger.warning(
+                f"IPN received for unknown payment_id: {callback_data.get('payment_id')}"
+            )
+            # Return 200 even for unknown payments — otherwise NOWPayments will keep retrying
+            # Log it so you can investigate manually
+            return jsonify({"message": "Payment not found, logged for review"}), 200
 
         # Log callback
         callback_log = PaymentCallback(
@@ -348,52 +424,41 @@ def ipn_callback():
 
         # Update payment status
         old_status = payment.payment_status
-        payment.payment_status = callback_data.get("payment_status")
+        new_status = callback_data.get("payment_status")
+
+        # Update all fields NOWPayments may have new data for
+        payment.payment_status = new_status
         payment.actually_paid = callback_data.get("actually_paid")
         payment.pay_amount = callback_data.get("pay_amount")
         payment.outcome_amount = callback_data.get("outcome_amount")
         payment.outcome_currency = callback_data.get("outcome_currency")
-        payment.updated_at = lambda: datetime.now(timezone.utc)
 
-        # Handle status changes
-        if old_status != payment.payment_status:
+        # FIX: Assign actual datetime value, not a lambda
+        payment.updated_at = datetime.now(timezone.utc)
+
+        if old_status != new_status:
             current_app.logger.info(
-                f"Payment {payment.order_id} status changed: {old_status} -> {payment.payment_status}"
+                f"Payment {payment.order_id} status: {old_status} → {new_status}"
             )
 
-            # Call status-specific handlers
             if is_payment_completed(payment):
                 handle_payment_completed(payment)
             elif is_payment_failed(payment):
                 handle_payment_failed(payment)
-            elif payment.payment_status == PaymentStatus.EXPIRED:
+            elif new_status == PaymentStatus.EXPIRED:
                 handle_payment_expired(payment)
+            # You can add more handlers here as needed:
+            # elif new_status == PaymentStatus.PARTIALLY_PAID:
+            #     handle_partial_payment(payment)
 
         db.session.commit()
 
+        # Return 200 to acknowledge receipt — NOWPayments expects this
         return jsonify({"success": True}), 200
 
     except Exception as e:
-        current_app.logger.error(f"IPN callback error: {str(e)}")
-
-        # Log failed callback attempt
-        if request.get_data():
-            try:
-                callback_log = PaymentCallback(
-                    payment_db_id=None,
-                    payment_id="unknown",
-                    payment_status="error",
-                    callback_data={"error": str(e), "raw_data": request.get_data().decode("utf-8")},
-                    signature=request.headers.get("x-nowpayments-sig"),
-                    signature_valid=False
-                )
-                db.session.add(callback_log)
-                db.session.commit()
-            except:
-                pass
-
-        return jsonify({"error": str(e)}), 500
-
+        current_app.logger.error(f"IPN callback processing failed: {str(e)}", exc_info=True)
+        return jsonify({"error": "Internal processing error"}), 500
 
 # ============= Success/Cancel Routes =============
 
@@ -409,7 +474,7 @@ def payment_success():
         ).first()
 
         if payment:
-            flash("Payment completed successfully!", "success")
+            flash("Your payment was received successfully!", "success")
             return render_template("payments/success.html", payment=payment)
 
     return render_template("payments/success.html")
@@ -417,7 +482,7 @@ def payment_success():
 
 @payment_bp.route("/cancel")
 def payment_cancel():
-    """Payment cancellation page"""
+    """Page shown when a user cancels their payment on NOWPayments."""
     order_id = request.args.get("order_id")
 
     if order_id and current_user.is_authenticated:
@@ -427,7 +492,7 @@ def payment_cancel():
         ).first()
 
         if payment:
-            flash("Payment was cancelled.", "warning")
+            flash("Your payment was cancelled.", "warning")
             return render_template("payments/cancel.html", payment=payment)
 
     return render_template("payments/cancel.html")
@@ -438,8 +503,23 @@ def payment_cancel():
 @payment_bp.route("/admin/payments")
 @login_required
 def admin_payments():
-    """Admin view of all payments (add role check)"""
-    # Add admin check here: if not current_user.is_admin: abort(403)
+    """
+    Admin view of all payments across all users.
+
+    LEARNING NOTE — Role-based access control (RBAC)
+    -------------------------------------------------
+    Currently any logged-in user can access this route — that's a security hole.
+    Before going fully live, add a role check. The pattern is:
+
+        if not current_user.is_admin:
+            abort(403)  # Returns "403 Forbidden"
+
+    Or with a decorator if you build one:
+        @admin_required
+
+    This is fine for now during development, but MUST be secured before launch.
+    """
+    # TODO: Add admin role check — if not current_user.is_admin: abort(403)
 
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 25, type=int)
@@ -451,7 +531,8 @@ def admin_payments():
     return render_template("payments/admin.html", payments=payments)
 
 
-# ============= Utility Functions =============
+
+# ============= Business Logic Handlers =============
 
 def handle_payment_completed(payment):
     """Handle completed payment logic"""
@@ -461,54 +542,80 @@ def handle_payment_completed(payment):
     # Add your business logic here:
     # - Update order status
     # Send notification to user dashboard
-    Notification.create_wallet_notification(
-        session=db.session,
-        user_id=current_user.id,
-        wallet_data={
-            "amount": 50000,
-            "method": "bank transfer",
-            "transaction_id": 456
-        },
-        notification_type="deposit"
-    )
-    # - Send confirmation email
-    from app.utils.email import send_payment_confirmation_email
+    deposit_user = payment.user or User.query.get(payment.user_id)
 
-    send_payment_confirmation_email(
-        user_email=current_user.email,
-        user_name=current_user.first_name,
-        amount=payment.amount,
-    )
+    if deposit_user:
+        # Send a wallet notification to the user's dashboard notification feed
+        Notification.create_wallet_notification(
+            session=db.session,
+            user_id=payment.user_id,
+            wallet_data={
+                "amount": payment.price_amount,  # FIX: was payment.amount (doesn't exist)
+                "method": "crypto",
+                "transaction_id": payment.id
+            },
+            notification_type="deposit"
+        )
+
+        # Send a confirmation email
+        try:
+            from app.utils.email import send_payment_confirmation_email
+            send_payment_confirmation_email(
+                user_email=deposit_user.email,
+                user_name=deposit_user.first_name,
+                amount=payment.price_amount
+            )
+        except Exception as email_error:
+            current_app.logger.error(
+                f"Failed to send payment confirmation email for order "
+                f"{payment.order_id}: {str(email_error)}"
+            )
+    else:
+        current_app.logger.warning(
+            f"Could not find user for completed payment: order_id={payment.order_id}"
+        )
     # - Grant access to service
     # - Update user credits/subscription
     # etc.
 
 
-def handle_payment_failed(payment):
-    """Handle failed payment logic"""
-    current_app.logger.warning(f"Payment failed: {payment.order_id}")
-    # Add your business logic here:
-    # - Send notification
-    # - Log for review
-    # etc.
+def handle_payment_failed(payment: CryptoPayment):
+    """
+    Called when a payment reaches 'failed' status.
+    Notifies the user and updates the transaction record.
+    """
+    current_app.logger.warning(f"Payment failed: order_id={payment.order_id}")
+
+    # Update the transaction history to reflect the failure
     TransactionService.update_status(payment.order_id, "failed")
 
+    # Optionally notify the user that their payment failed
+    # You can add a Notification.create_wallet_notification() call here
+    # once you have a 'failed' notification type set up
 
-def handle_payment_expired(payment):
-    """Handle expired payment logic"""
-    current_app.logger.info(f"Payment expired: {payment.order_id}")
-    # Add your business logic here:
-    # - Clean up pending orders
-    # - Send notification
-    # etc.
+
+def handle_payment_expired(payment: CryptoPayment):
+    """
+    Called when a payment expires (user never sent crypto within the time window).
+    Cleans up the pending state so the user can try again.
+    """
+    current_app.logger.info(f"Payment expired: order_id={payment.order_id}")
+
     TransactionService.update_status(payment.order_id, "expired")
+
+    # Optionally notify the user that their payment window expired
+    # and prompt them to create a new deposit
 
 
 # ============= API Routes (for AJAX) =============
 
 @payment_bp.route("/api/currencies", methods=["GET"])
+@login_required
 def get_currencies():
-    """Get available cryptocurrencies"""
+    """
+    Return the list of cryptocurrencies available for payment.
+    Used by the deposit modal to populate the currency selector dropdown.
+    """
     try:
         np_service = get_nowpayments_service()
         currencies = np_service.get_available_currencies()
@@ -518,14 +625,28 @@ def get_currencies():
             "currencies": currencies
         })
     except Exception as e:
+        current_app.logger.error(f"Failed to fetch currencies: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
 @payment_bp.route("/api/estimate", methods=["POST"])
+@login_required
 def get_estimate():
-    """Get payment estimate"""
+    """
+    Return an exchange rate estimate between two currencies.
+    Used by the deposit modal to show "You'll pay approximately X ETH".
+
+    Expected JSON body:
+    {
+        "amount": 100.00,
+        "currency_from": "usd",
+        "currency_to": "eth"
+    }
+    """
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "Request body must be valid JSON."}), 400
 
         np_service = get_nowpayments_service()
         estimate = np_service.get_estimate(
@@ -539,4 +660,5 @@ def get_estimate():
             "estimate": estimate
         })
     except Exception as e:
+        current_app.logger.error(f"Estimate request failed: {str(e)}")
         return jsonify({"error": str(e)}), 500
