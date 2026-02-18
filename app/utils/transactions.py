@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 from decimal import Decimal
+
+from flask import current_app
 from sqlalchemy import select
 from app import db
 from app.models.transaction import Transaction
@@ -23,7 +25,7 @@ class TransactionService:
             order_id=payment.order_id,
         )
         db.session.add(tx)
-        db.session.commit()
+        # db.session.commit()
         return tx
 
     @staticmethod
@@ -35,20 +37,36 @@ class TransactionService:
         tx = db.session.scalar(
             select(Transaction).where(Transaction.order_id == order_id)
         )
-        if tx:
+        if not tx:
+            current_app.logger.warning(
+                f"TransactionService.update_status: No transaction found for "
+                f"order_id='{order_id}'. Cannot update to '{new_status}'. "
+                f"This may indicate create_deposit() was not called or failed earlier."
+            )
+            return None
             # Map NOWPayments status → plain status for the table
-            status_map = {
-                "waiting":        "pending",
-                "confirming":     "confirming",
-                "confirmed":      "completed",
-                "finished":       "completed",
-                "failed":         "failed",
-                "expired":        "expired",
-                "partially_paid": "pending",
-            }
-            tx.status = status_map.get(new_status, new_status)
-            db.session.commit()
+        status_map = {
+            "waiting":        "pending",
+            "confirming":     "confirming",
+            "confirmed":      "completed",
+            "finished":       "completed",
+            "failed":         "failed",
+            "expired":        "expired",
+            "partially_paid": "pending",
+        }
+
+        old_status = tx.status
+        tx.status = status_map.get(new_status, new_status)
+
+        db.session.commit()
+
+        current_app.logger.info(
+            f"Transaction status updated: order_id='{order_id}' "
+            f"{old_status} → {tx.status} (from NOWPayments: '{new_status}')"
+        )
+
         return tx
+
 
     @staticmethod
     def get_user_transactions(user_id: int) -> list[Transaction]:
@@ -59,3 +77,16 @@ class TransactionService:
             .order_by(Transaction.date.desc())
         )
         return db.session.scalars(stmt).all()
+
+    @staticmethod
+    def get_transaction_by_order_id(order_id: str) -> Transaction | None:
+        """
+        Args:
+            order_id: The order ID to search for (e.g. "DEPOSIT-AB12CD34")
+
+        Returns:
+            Matching Transaction or None if not found
+        """
+        return db.session.scalar(
+            select(Transaction).where(Transaction.order_id == order_id)
+        )
