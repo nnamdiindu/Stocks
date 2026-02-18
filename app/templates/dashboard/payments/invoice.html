@@ -25,11 +25,11 @@
                         <p>Complete your deposit transaction</p>
                     </div>
                     <div>
-                        <span class="status-badge 
-                            {% if is_completed %}completed
-                            {% elif is_pending %}pending
-                            {% else %}failed
-                            {% endif %}">
+                        <span class="status-badge" id="statusBadge"
+                            {% if is_completed %}class="status-badge completed"
+                            {% elif is_pending %}class="status-badge pending"
+                            {% else %}class="status-badge failed"
+                            {% endif %}>
                             {{ payment.payment_status }}
                         </span>
                     </div>
@@ -47,7 +47,7 @@
                 </div>
                 <div class="info-item">
                     <h6>Payment ID</h6>
-                    <p>{{ payment.payment_id }}</p>
+                    <p>{{ payment.payment_id or '—' }}</p>
                 </div>
                 <div class="info-item">
                     <h6>Created Date</h6>
@@ -173,7 +173,7 @@
                             <table class="detail-table">
                                 <tr>
                                     <th>Payment ID:</th>
-                                    <td>{{ payment.payment_id }}</td>
+                                    <td>{{ payment.payment_id or '—' }}</td>
                                 </tr>
                                 <tr>
                                     <th>Order ID:</th>
@@ -191,7 +191,7 @@
                                 {% endif %}
                                 <tr>
                                     <th>Status:</th>
-                                    <td>{{ payment.payment_status }}</td>
+                                    <td id="detailStatus">{{ payment.payment_status }}</td>
                                 </tr>
                                 <tr>
                                     <th>Created:</th>
@@ -243,29 +243,56 @@
 </div>
 
 <script>
-// Auto-refresh for pending payments
 {% if is_pending %}
-let autoRefreshInterval;
+
+// The order_id Jinja passes in at render time — used in the fetch URL below
+const ORDER_ID = "{{ payment.order_id }}";
+
+// Track the polling interval so we can stop it when the status resolves
+let pollingInterval = null;
+
+const TERMINAL_STATUSES = new Set(['finished', 'confirmed', 'failed', 'expired', 'refunded']);
 
 function checkPaymentStatus() {
     const btn = document.getElementById('checkStatusBtn');
+
     if (btn) {
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
     }
-    
-    fetch('{{ url_for("payments.payment_status", order_id=payment.order_id) }}')
-        .then(response => response.json())
+
+    fetch(`/dashboard/payments/status/${ORDER_ID}`)
+        .then(response => {
+            if (!response.ok) {
+                // Server returned 4xx/5xx — don't crash, just log and wait for next poll
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            if (data.success) {
-                const status = data.payment.payment_status;
-                
-                if (status === 'finished' || status === 'confirmed' || status === 'failed' || status === 'expired') {
-                    window.location.reload();
-                }
+            if (!data.success) return;
+
+            const status = data.payment.payment_status;
+
+            // Update the status badge text live so the user sees something
+            // is happening even before the page reloads
+            const badge = document.getElementById('statusBadge');
+            const detailStatus = document.getElementById('detailStatus');
+            if (badge) badge.textContent = status;
+            if (detailStatus) detailStatus.textContent = status;
+
+            if (TERMINAL_STATUSES.has(status)) {
+                // Status is final — stop polling and reload to show correct UI
+                stopPolling();
+                // Small delay so the user briefly sees the updated badge
+                // before the page reloads — gives visual feedback
+                setTimeout(() => window.location.reload(), 1500);
             }
         })
-        .catch(error => console.error('Error:', error))
+        .catch(error => {
+
+            console.warn('Status check failed (will retry):', error.message);
+        })
         .finally(() => {
             if (btn) {
                 btn.disabled = false;
@@ -274,47 +301,75 @@ function checkPaymentStatus() {
         });
 }
 
-// Auto-check every 30 seconds
-autoRefreshInterval = setInterval(checkPaymentStatus, 30000);
+function startPolling() {
 
-window.addEventListener('beforeunload', function() {
-    if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-});
-{% endif %}
+    checkPaymentStatus();
+    pollingInterval = setInterval(checkPaymentStatus, 30000);
+}
 
-// Countdown timer
-{% if payment.expiration_estimate_date and is_pending %}
-const expirationDate = new Date('{{ payment.expiration_estimate_date.isoformat() }}');
-
-function updateCountdown() {
-    const now = new Date();
-    const diff = expirationDate - now;
-    
-    const countdownElement = document.getElementById('countdown');
-    if (!countdownElement) return;
-    
-    if (diff <= 0) {
-        countdownElement.textContent = 'EXPIRED';
-        countdownElement.style.color = '#EF4444';
-        if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-        setTimeout(() => window.location.reload(), 2000);
-        return;
-    }
-    
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
-    countdownElement.textContent = 
-        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    
-    if (diff < 5 * 60 * 1000) {
-        countdownElement.style.color = '#EF4444';
+function stopPolling() {
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
     }
 }
 
+// Start polling when page loads
+startPolling();
+
+// Clean up interval when user navigates away — prevents memory leaks
+window.addEventListener('beforeunload', stopPolling);
+
+{% endif %}{# end is_pending #}
+
+
+{% if payment.expiration_estimate_date and is_pending %}
+
+
+const EXPIRATION_DATE = new Date('{{ payment.expiration_estimate_date.isoformat() }}');
+let countdownInterval = null;
+
+function updateCountdown() {
+    const now = new Date();
+    const diff = EXPIRATION_DATE - now;
+    const el = document.getElementById('countdown');
+    if (!el) return;
+
+    if (diff <= 0) {
+        // Timer hit zero — payment has expired on NOWPayments' side
+        el.textContent = 'EXPIRED';
+        el.style.color = '#EF4444';
+
+        // Stop the countdown — no point updating a zero timer
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+
+        setTimeout(() => window.location.reload(), 3000);
+        return;
+    }
+
+    // Format remaining time as HH:MM:SS
+    const hours   = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    el.textContent = [
+        hours.toString().padStart(2, '0'),
+        minutes.toString().padStart(2, '0'),
+        seconds.toString().padStart(2, '0')
+    ].join(':');
+
+    // Turn red when under 5 minutes to create urgency
+    el.style.color = diff < 5 * 60 * 1000 ? '#EF4444' : '';
+}
+
+// Run immediately then every second
 updateCountdown();
-setInterval(updateCountdown, 1000);
-{% endif %}
+countdownInterval = setInterval(updateCountdown, 1000);
+
+{% endif %}{# end expiration countdown #}
 </script>
+
 {% endblock %}
