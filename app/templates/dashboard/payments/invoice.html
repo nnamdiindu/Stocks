@@ -72,8 +72,7 @@
                     <i class="fab fa-bitcoin"></i>
                     <strong>≈ {{ payment.pay_amount }} {{ payment.pay_currency.upper() }}</strong>
                 </div>
-                {% endif %}
-            </div>
+                {% endif %}            </div>
 
             <!-- Status-Based Content -->
             {% if is_completed %}
@@ -183,7 +182,7 @@
                                     <th>Amount:</th>
                                     <td>${{ "%.2f"|format(payment.price_amount) }} {{ payment.price_currency }}</td>
                                 </tr>
-                                {% if payment.pay_amount %}
+                                {% if payment.pay_amount and payment.pay_currency %}
                                 <tr>
                                     <th>Crypto Amount:</th>
                                     <td>{{ payment.pay_amount }} {{ payment.pay_currency.upper() }}</td>
@@ -290,7 +289,12 @@ function checkPaymentStatus() {
             }
         })
         .catch(error => {
-
+            // LEARNING NOTE — Silent failure on network errors
+            // -------------------------------------------------
+            // If the fetch fails (network issue, server restarting),
+            // we just log it and let the next interval try again.
+            // We never want a network error to break the polling loop
+            // or show an error to the user — just try again in 30s.
             console.warn('Status check failed (will retry):', error.message);
         })
         .finally(() => {
@@ -302,7 +306,11 @@ function checkPaymentStatus() {
 }
 
 function startPolling() {
-
+    // Check immediately on load, then every 30 seconds
+    // LEARNING NOTE — Why check immediately?
+    // The payment status might have changed between when the page
+    // was first requested and when the JS finishes loading.
+    // An immediate check catches that gap.
     checkPaymentStatus();
     pollingInterval = setInterval(checkPaymentStatus, 30000);
 }
@@ -325,7 +333,15 @@ window.addEventListener('beforeunload', stopPolling);
 
 {% if payment.expiration_estimate_date and is_pending %}
 
-
+/*
+ * LEARNING NOTE — Why pass the date from Jinja rather than fetching it?
+ * ----------------------------------------------------------------------
+ * The expiration_estimate_date is set once at payment creation and never
+ * changes. Passing it directly from the template avoids an extra API call.
+ * We use .isoformat() on the Python side to produce a standard ISO 8601
+ * string that JavaScript's Date constructor can parse reliably across
+ * all browsers.
+ */
 const EXPIRATION_DATE = new Date('{{ payment.expiration_estimate_date.isoformat() }}');
 let countdownInterval = null;
 
