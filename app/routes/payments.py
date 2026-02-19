@@ -403,13 +403,7 @@ def ipn_callback():
     try:
         # Get raw request data and signature
         request_data = request.get_data()
-        print(request_data)
         signature = request.headers.get("x-nowpayments-sig")
-
-        # TEMPORARY DEBUG — remove after fixing
-        current_app.logger.info(f"IPN raw body length: {len(request_data)}")
-        current_app.logger.info(f"IPN signature received: {signature[:20] if signature else 'NONE'}...")
-        current_app.logger.info(f"IPN body preview: {request_data[:100]}")
 
         # Reject immediately if no signature is present
         if not signature:
