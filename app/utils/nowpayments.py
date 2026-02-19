@@ -366,7 +366,12 @@ class NOWPaymentsService:
         try:
             payload_dict = json.loads(request_data.decode("utf-8"))
 
-            sorted_payload = json.dumps(payload_dict, sort_keys=True, separators=(',', ':'))
+            sorted_payload = json.dumps(
+                payload_dict,
+                sort_keys=True,
+                separators=(',', ':'),
+                ensure_ascii=False
+            )
 
             expected_sig = hmac.new(
                 self.ipn_secret.encode("utf-8"),
