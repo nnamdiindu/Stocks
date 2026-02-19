@@ -420,17 +420,41 @@ def ipn_callback():
         np_service = get_nowpayments_service()
         callback_data = np_service.process_ipn_callback(request_data, signature)
 
-        # Find payment by payment_id
-        payment = CryptoPayment.query.filter_by(
-            payment_id=str(callback_data.get("payment_id"))
-        ).first()
+        incoming_payment_id = str(callback_data.get("payment_id")) if callback_data.get("payment_id") else None
+        incoming_invoice_id = str(callback_data.get("invoice_id")) if callback_data.get("invoice_id") else None
+
+        payment = None
+
+        # Step 1: Try by payment_id
+        # Handles: repeat IPNs after the first one has saved the payment_id
+        if incoming_payment_id:
+            payment = CryptoPayment.query.filter_by(
+                payment_id=incoming_payment_id
+            ).first()
+
+        # Step 2: Try by invoice_id if payment_id lookup missed
+        # Handles: the very first IPN for any invoice-based payment
+        if not payment and incoming_invoice_id:
+            payment = CryptoPayment.query.filter_by(
+                invoice_id=incoming_invoice_id
+            ).first()
+
+            if payment and incoming_payment_id:
+                # Save the payment_id now so all future IPNs use Step 1
+                payment.payment_id = incoming_payment_id
+                current_app.logger.info(
+                    f"Invoice payment matched via invoice_id={incoming_invoice_id}. "
+                    f"Saved payment_id={incoming_payment_id} for future lookups."
+                )
 
         if not payment:
             current_app.logger.warning(
-                f"IPN received for unknown payment_id: {callback_data.get('payment_id')}"
+                f"IPN received for unknown payment — "
+                f"payment_id={incoming_payment_id}, "
+                f"invoice_id={incoming_invoice_id}, "
+                f"order_id={callback_data.get('order_id')}"
             )
-            # Return 200 even for unknown payments — otherwise NOWPayments will keep retrying
-            # Log it so you can investigate manually
+            # Return 200 so NOWPayments stops retrying — we'll never find this payment
             return jsonify({"message": "Payment not found, logged for review"}), 200
 
         # Log callback
