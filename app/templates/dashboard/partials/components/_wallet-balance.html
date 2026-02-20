@@ -5,12 +5,12 @@
     <!-- Available Balance Card -->
     <div class="balance-card-large">
         <div class="balance-label">Available Balance</div>
-        <div class="balance-amount-large">${{ available_balance|default('205,302.70') }}</div>
+        <div class="balance-amount-large">${{ available_balance|default('0.00') }}</div>
         
         <div class="balance-comparison">
             <span class="comparison-badge {{ 'positive' if balance_change_positive|default(true) else 'negative' }}">
                 <i class="fas fa-caret-{{ 'up' if balance_change_positive|default(true) else 'down' }}"></i>
-                {{ balance_change_percent|default('34.30') }}%
+                {{ balance_change_percent|default('00.00') }}%
             </span>
             <span class="comparison-text">Compare to last month</span>
         </div>
@@ -39,7 +39,7 @@
             </div>
             <div class="stat-content">
                 <div class="stat-label">Total Deposits</div>
-                <div class="stat-value">${{ total_deposits|default('2,300,000') }}</div>
+                <div class="stat-value">${{ total_deposits|default('0') }}</div>
                 <div class="stat-description">The total amount you've added to your wallet over time</div>
             </div>
         </div>
@@ -51,7 +51,7 @@
             </div>
             <div class="stat-content">
                 <div class="stat-label">Total Withdrawals</div>
-                <div class="stat-value">${{ total_withdrawals|default('1,850,000') }}</div>
+                <div class="stat-value">${{ total_withdrawals|default('0') }}</div>
                 <div class="stat-description">The total amount you've successfully withdrawn from your wallet</div>
             </div>
         </div>
