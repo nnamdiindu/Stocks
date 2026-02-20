@@ -8,7 +8,7 @@
         <i class="fas fa-gift"></i>
         <div class="offer-content">
             <span class="offer-label">Special Offer</span>
-            <span class="offer-text">Earn up to $10 per successful referral</span>
+            <span class="offer-text">Earn up to 10% per successful referral</span>
         </div>
     </div>
 
@@ -49,7 +49,7 @@
                 <div class="step-content">
                     <div class="step-number">Step 3</div>
                     <h3 class="step-title">You earn rewards</h3>
-                    <p class="step-description">Get $10 credited to your account once your friend completes their first trade</p>
+                    <p class="step-description">Get 10% credited to your account once your friend completes their first trade</p>
                 </div>
             </div>
         </div>
@@ -88,7 +88,7 @@
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">Total Invites</div>
-                    <div class="stat-value">{{ total_invites|default(24) }}</div>
+                    <div class="stat-value">{{ total_invites|default(0) }}</div>
                 </div>
             </div>
 
@@ -98,7 +98,7 @@
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">Successful Referrals</div>
-                    <div class="stat-value">{{ successful_referrals|default(12) }}</div>
+                    <div class="stat-value">{{ successful_referrals|default(0) }}</div>
                 </div>
             </div>
 
@@ -108,7 +108,7 @@
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">Total Rewards</div>
-                    <div class="stat-value">${{ total_rewards|default(120) }}</div>
+                    <div class="stat-value">${{ total_rewards|default(0) }}</div>
                 </div>
             </div>
         </div>
@@ -130,13 +130,13 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% set default_referrals = [
+                        {# {% set default_referrals = [
                             {'user': 'Sarah Johnson', 'reward': '$10', 'status': 'Pending', 'date': '20-12-2025'},
                             {'user': 'Mike Chen', 'reward': '$10', 'status': 'Completed', 'date': '20-12-2025'},
                             {'user': 'Emily Davis', 'reward': '$10', 'status': 'Pending', 'date': '20-12-2025'},
                             {'user': 'David Wilson', 'reward': '$10', 'status': 'Completed', 'date': '20-12-2025'},
                             {'user': 'Lisa Anderson', 'reward': '$10', 'status': 'Pending', 'date': '20-12-2025'}
-                        ] %}
+                        ] %} #}
 
                         {% for referral in referrals|default(default_referrals) %}
                         <tr>
