@@ -3,10 +3,10 @@
     <div class="card-header">
         <div>
             <div class="card-title">Portfolio Overview</div>
-            <div class="portfolio-value">${{ portfolio_value|default('14,032.56') }}</div>
+            <div class="portfolio-value">${{ portfolio_value|default('0.00') }}</div>
             <div class="portfolio-change {{ 'positive' if portfolio_change_positive|default(true) else 'negative' }}">
                 <i class="fas fa-caret-{{ 'up' if portfolio_change_positive|default(true) else 'down' }}"></i> 
-                {{ portfolio_change|default('25.21') }}%
+                {{ portfolio_change|default('00.00') }}%
             </div>
         </div>
     </div>
