@@ -85,6 +85,13 @@ class User(UserMixin, db.Model):
         cascade="all, delete-orphan"
     )
 
+    wallet: Mapped["Wallet"] = relationship(
+        "Wallet",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        uselist=False
+    )
+
     # account = relationship("UserAccount", back_populates="user", uselist=False)
     # holdings = relationship("UserHolding", back_populates="user", cascade="all, delete-orphan")
     # stock_transactions = relationship("StockTransaction", back_populates="user", cascade="all, delete-orphan")
