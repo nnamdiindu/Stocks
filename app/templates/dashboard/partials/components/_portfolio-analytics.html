@@ -9,9 +9,9 @@
             <div>
                 <h3 class="chart-title">Portfolio Analytics</h3>
                 <div class="chart-value">
-                    <span class="value-amount">${{ portfolio_value|default('14,032.56') }}</span>
+                    <span class="value-amount">{{ wallet.balance|currency }}</span>
                     <span class="value-change positive">
-                        <i class="fas fa-caret-up"></i> {{ change_percentage|default('25.21') }}%
+                        <i class="fas fa-caret-up"></i> {{ change_percentage|default('0.00') }}%
                     </span>
                 </div>
             </div>
