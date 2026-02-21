@@ -69,7 +69,7 @@ def create_app():
     app.limiter = limiter
 
     # Register it as a Jinja filter
-    app.jinja_env.filters['compact'] = format_number
+    app.jinja_env.filters["compact"] = format_number
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -100,6 +100,10 @@ def create_app():
     # CREATE DATABASE TABLES
     with app.app_context():
         init_db()
+
+    @app.template_filter("currency")
+    def currency_filter(value):
+        return "${:,.2f}".format(float(value))
 
     # ERROR HANDLERS
     @app.errorhandler(404)
