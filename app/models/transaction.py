@@ -15,13 +15,14 @@ class Transaction(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    wallet_id: Mapped[int] = mapped_column(ForeignKey("wallets.id"), nullable=False)
 
     # The 5 fields that appear in your transaction history table
     type: Mapped[str] = mapped_column(String(50), nullable=False)           # e.g. "Deposit"
     description: Mapped[str] = mapped_column(String(255), nullable=False)   # e.g. "Crypto"
     amount: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False) # e.g. 100.00
     status: Mapped[str] = mapped_column(String(30), nullable=False, default="pending")
-    date: Mapped[datetime] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(timezone.utc)
