@@ -209,7 +209,6 @@ def create_deposit():
             # ============= DATABASE PERSISTENCE =============
 
         db.session.add(payment)
-        TransactionService.create_deposit(payment)
         db.session.commit()
 
         current_app.logger.info(f"CryptoPayment saved to DB: order_id={order_id}, id={payment.id}")
