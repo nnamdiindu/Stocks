@@ -5,7 +5,7 @@
     <!-- Available Balance Card -->
     <div class="balance-card-large">
         <div class="balance-label">Available Balance</div>
-        <div class="balance-amount-large">${{ available_balance|default('0.00') }}</div>
+        <div class="balance-amount-large">{{ wallet.balance|currency  }}</div>
         
         <div class="balance-comparison">
             <span class="comparison-badge {{ 'positive' if balance_change_positive|default(true) else 'negative' }}">
