@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, render_template, url_for, flash, 
 from flask_login import login_required, current_user
 from datetime import datetime, timezone
 import uuid
-from app.models.notifications import Notification
+from app.models.notification import Notification
 from app.models.user import User
 from app.utils.nowpayments import NOWPaymentsService, PaymentStatus
 from app.models.payment import (
@@ -215,6 +215,16 @@ def create_deposit():
 
         # Create a matching transaction record for the portfolio history table
         TransactionService.create_deposit(payment)
+        Notification.create_wallet_notification(
+            session=db.session,
+            user_id=current_user.id,
+            wallet_data={
+                "amount": amount,
+                "method": payment_method,
+                "transaction_id": payment.id
+            },
+            notification_type="pending"
+        )
 
         # ============= BUILD RESPONSE =============
 
