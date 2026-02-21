@@ -77,31 +77,56 @@
 
             <!-- Right Column: Contact Form and Social Links -->
             <div class="col-lg-6">
-                <form action="{{ url_for('main.contact_us') }}" method="post">
+                <form action="{{ url_for('main.contact_us') }}" method="post" id="contactForm">
                     <!-- First Name -->
                     <div class="mb-3">
                         <label for="firstName" class="form-label">First name</label>
                         <input type="text" class="form-control" id="firstName" placeholder="First name"
-                            name="first_name">
+                            name="first_name" required>
                     </div>
 
                     <!-- Email -->
                     <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
                         <input type="email" class="form-control" id="email" placeholder="billykimber@email.com"
-                            name="email">
+                            name="email" required>
                     </div>
 
                     <!-- Phone Number -->
                     <div class="mb-3">
                         <label for="tel" class="form-label text-muted small">Phone number</label>
-                        <input type="tel" class="form-control" id="tel" placeholder="(555) 000-0000" name="tel">
+                        <input type="tel" class="form-control" placeholder="(555) 000-0000" name="tel" id="tel">
+                        <input type="hidden" id="fullPhone" name="phone_number">
                     </div>
+
+                    <!-- Subject-->
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Subject</label>
+                        <select id="category" name="category" class="form-select form-control" required>
+                            <option value="" disabled selected>Select a category</option>
+
+                            <optgroup label="General">
+                                <option value="general_inquiry">General Inquiry</option>
+                                <option value="other">Other</option>
+                            </optgroup>
+
+                            <optgroup label="Support">
+                                <option value="technical_support">Technical Support</option>
+                                <option value="account_issue">Account Issue</option>
+                            </optgroup>
+
+                            <optgroup label="Transactions">
+                                <option value="payment_deposit">Payment/Deposit</option>
+                                <option value="withdrawal">Withdrawal</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
 
                     <!-- Message -->
                     <div class="mb-4">
                         <label for="message" class="form-label">Message</label>
-                        <textarea class="form-control" id="message" rows="5" placeholder="Leave us a message"
+                        <textarea maxlength="2000" class="form-control" id="message" rows="5" placeholder="Leave us a message"
                             name="message"></textarea>
                     </div>
 
@@ -143,8 +168,9 @@
     });
 
     // Replace the input value with full international number before submission
-    document.getElementById('register').addEventListener('submit', function (e) {
-        input.value = iti.getNumber();
+    document.getElementById('contactForm').addEventListener('submit', function (e) {
+        const fullNumber = iti.getNumber();
+        document.getElementById('fullPhone').value = fullNumber;
     });
 </script>
 {% endblock %}
