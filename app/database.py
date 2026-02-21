@@ -7,9 +7,6 @@ class Base(DeclarativeBase):
 db = SQLAlchemy(model_class=Base)
 
 def init_db():
-    from app.models.user import User
-    from app.models.notifications import Notification, NotificationPreference
-
     db.create_all()
     print("Database tables created!")
 
