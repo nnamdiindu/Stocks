@@ -1,5 +1,6 @@
 from flask import render_template, Blueprint
 from flask_login import current_user, login_required
+from app.models import Wallet
 from app.utils.stocks_api import api
 from app.utils.transactions import TransactionService
 
@@ -17,17 +18,23 @@ def dashboard():
     # categories = api.categorize_stocks(all_stocks)
     # gainers_and_losers = categories["gainers"][:3] + categories["losers"][:2]
     transactions = TransactionService.get_user_transactions(current_user.id)
+    wallet = Wallet.get_or_create(current_user.id)
     return render_template("dashboard/dashboard.html", transactions=transactions,
                            # all_stocks=all_stocks,
                            # trending_stocks=categories["trending"],
                            # gainers_losers_stocks=gainers_and_losers,
-                           current_user=current_user)
+                           current_user=current_user,
+                           wallet=wallet)
 
 @dashboard_bp.route("/dashboard/portfolio")
 @login_required
 def portfolio():
     transactions = TransactionService.get_user_transactions(current_user.id)
-    return render_template("dashboard/portfolio.html", current_user=current_user, transactions=transactions)
+    wallet = Wallet.get_or_create(current_user.id)
+    return render_template("dashboard/portfolio.html",
+                           current_user=current_user,
+                           transactions=transactions,
+                           wallet=wallet)
 
 @dashboard_bp.route("/dashboard/invest")
 @login_required
@@ -43,7 +50,11 @@ def settings():
 @login_required
 def wallet():
     transactions = TransactionService.get_user_transactions(current_user.id)
-    return render_template("dashboard/wallet.html", transactions=transactions)
+    wallet = Wallet.get_or_create(current_user.id)
+    return render_template("dashboard/wallet.html",
+                           current_user=current_user,
+                           transactions=transactions,
+                           wallet=wallet)
 
 @dashboard_bp.route("/dashboard/insights")
 @login_required
