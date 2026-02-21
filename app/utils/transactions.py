@@ -1,20 +1,32 @@
 from datetime import datetime, timezone
 from decimal import Decimal
-
 from flask import current_app
 from sqlalchemy import select
 from app import db
+from app.models.wallet import Wallet
 from app.models.transaction import Transaction
 
 
 class TransactionService:
 
     @staticmethod
-    def create_deposit(payment) -> Transaction:
+    def create_deposit(payment) -> Transaction | None:
         """
         Call this right after saving a CryptoPayment to the DB.
         Creates the row that appears in the transaction history table.
         """
+
+        wallet = db.session.scalar(
+            select(Wallet).where(Wallet.user_id == payment.user_id)
+        )
+
+        if not wallet:
+            current_app.logger.error(
+                f"TransactionService.create_deposit: No wallet found for "
+                f"user_id={payment.user_id}. Transaction not created."
+            )
+            return None
+
         tx = Transaction(
             user_id=payment.user_id,
             type="Deposit",
@@ -23,9 +35,10 @@ class TransactionService:
             status="pending",
             date=datetime.now(timezone.utc),
             order_id=payment.order_id,
+            wallet_id=wallet.id
         )
         db.session.add(tx)
-        # db.session.commit()
+        db.session.commit()
         return tx
 
     @staticmethod
@@ -57,6 +70,18 @@ class TransactionService:
 
         old_status = tx.status
         tx.status = status_map.get(new_status, new_status)
+
+        # Also credit the wallet balance when payment completes
+        if tx.status == "completed" and old_status != "completed":
+            wallet = db.session.scalar(
+                select(Wallet).where(Wallet.user_id == tx.user_id)
+            )
+            if wallet:
+                wallet.balance += tx.amount
+                current_app.logger.info(
+                    f"Wallet balance updated: user_id={tx.user_id} "
+                    f"+{tx.amount} → new balance={wallet.balance}"
+                )
 
         db.session.commit()
 
