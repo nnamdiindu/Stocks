@@ -10,7 +10,7 @@
             </div>
             <span class="stat-label">Total Portfolio Value</span>
         </div>
-        <div class="stat-value">${{ portfolio_value|default('14,032.56') }}</div>
+        <div class="stat-value">${{ portfolio_value|default('0.00') }}</div>
         <div class="stat-description">Current market value of all assets</div>
     </div>
 
@@ -22,7 +22,7 @@
             </div>
             <span class="stat-label">Total Invested</span>
         </div>
-        <div class="stat-value">${{ total_invested|default('12,800.00') }}</div>
+        <div class="stat-value">${{ total_invested|default('0.00') }}</div>
         <div class="stat-description">Amount deposited and invested over time</div>
     </div>
 
@@ -34,9 +34,9 @@
             </div>
             <span class="stat-label">Total Returns</span>
         </div>
-        <div class="stat-value">${{ total_returns|default('1,232.56') }}</div>
+        <div class="stat-value">${{ total_returns|default('0.00') }}</div>
         <div class="stat-change positive">
-            <i class="fas fa-caret-up"></i> {{ returns_percentage|default('9.63') }}%
+            <i class="fas fa-caret-up"></i> {{ returns_percentage|default('0.00') }}%
         </div>
     </div>
 
