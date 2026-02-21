@@ -91,7 +91,6 @@ class User(UserMixin, db.Model):
     # deposits = relationship("Deposit", back_populates="user", cascade="all, delete-orphan")
     # withdrawals = relationship("Withdrawal", back_populates="user", cascade="all, delete-orphan")
     # transaction_history = relationship("TransactionHistory", back_populates="user", cascade="all, delete-orphan")
-    # notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
     # Referral relationships
     # referred_by = relationship("User", remote_side=[user_id], backref="referrals")
     # referral_given = relationship("Referral", foreign_keys="Referral.referrer_id", back_populates="referrer")
