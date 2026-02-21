@@ -76,6 +76,174 @@ class Notification(db.Model):
     # Relationships
     user: Mapped["User"] = relationship(back_populates="notifications")
 
+    @classmethod
+    def create_trade_notification(cls, session, user_id: int, trade_data: dict):
+        """
+        Factory method for trade-related notifications.
+
+        A classmethod receives the class itself (cls) as first argument instead of
+        an instance (self). This means you call it on the class directly:
+        Notification.create_trade_notification(...) — not on an object instance.
+        """
+        action = trade_data.get("action", "executed").capitalize()
+        symbol = trade_data.get("symbol", "Unknown")
+        quantity = trade_data.get("quantity", 0)
+        price = trade_data.get("price", 0)
+        trade_id = trade_data.get("trade_id")
+
+        notification = cls(
+            user_id=user_id,
+            type=NotificationType.SUCCESS.value,
+            category=NotificationCategory.TRADE.value,
+            priority=NotificationPriority.HIGH.value,
+            title=f"Trade Executed: {action} {symbol}",
+            message=f"You {action.lower()}t {quantity} share{'s' if quantity != 1 else ''} of {symbol} at ${price:,.2f}",
+            action_text="View Trade",
+            action_url=f"/dashboard/trades/{trade_id}" if trade_id else "/dashboard/trades",
+            notification_metadata={
+                "trade_id": trade_id,
+                "symbol": symbol,
+                "quantity": quantity,
+                "price": price,
+                "action": action.lower()
+            }
+        )
+        session.add(notification)
+        session.commit()
+        return notification
+
+    @classmethod
+    def create_wallet_notification(cls, session, user_id: int, wallet_data: dict, notification_type: str = "deposit"):
+        """
+        Factory method for wallet/payment notifications.
+        notification_type: 'deposit', 'withdrawal', 'pending', 'failed'
+        """
+        amount = wallet_data.get("amount", 0)
+        method = wallet_data.get("method", "crypto")
+        transaction_id = wallet_data.get("transaction_id")
+
+        config = {
+            "deposit": {
+                "type": NotificationType.SUCCESS.value,
+                "title": "Deposit Successful",
+                "message": f"Your deposit of ${amount:,.2f} via {method} has been confirmed.",
+            },
+            "withdrawal": {
+                "type": NotificationType.SUCCESS.value,
+                "title": "Withdrawal Processed",
+                "message": f"Your withdrawal of ${amount:,.2f} via {method} is being processed.",
+            },
+            "pending": {
+                "type": NotificationType.WARNING.value,
+                "title": "Transaction Pending",
+                "message": f"Your transaction of ${amount:,.2f} is awaiting confirmation.",
+            },
+            "failed": {
+                "type": NotificationType.DANGER.value,
+                "title": "Transaction Failed",
+                "message": f"Your transaction of ${amount:,.2f} via {method} could not be completed.",
+            },
+        }
+
+        cfg = config.get(notification_type, config["deposit"])
+
+        notification = cls(
+            user_id=user_id,
+            type=cfg["type"],
+            category=NotificationCategory.WALLET.value,
+            priority=NotificationPriority.HIGH.value,
+            title=cfg["title"],
+            message=cfg["message"],
+            action_text="View Wallet",
+            action_url="/dashboard/wallet",
+            notification_metadata={
+                "transaction_id": transaction_id,
+                "amount": amount,
+                "method": method,
+                "notification_type": notification_type
+            }
+        )
+        session.add(notification)
+        session.commit()
+        return notification
+
+    @classmethod
+    def create_security_notification(cls, session, user_id: int, security_data: dict):
+        """
+        Factory method for security alerts — always urgent priority.
+        """
+        title = security_data.get("title", "Security Alert")
+        message = security_data.get("message", "A security event was detected on your account.")
+
+        notification = cls(
+            user_id=user_id,
+            type=NotificationType.WARNING.value,
+            category=NotificationCategory.SECURITY.value,
+            priority=NotificationPriority.URGENT.value,
+            title=title,
+            message=message,
+            action_text="Review Activity",
+            action_url="/dashboard/security",
+            notification_metadata={
+                "ip_address": security_data.get("ip_address"),
+                "location": security_data.get("location"),
+                "device": security_data.get("device"),
+            }
+        )
+        session.add(notification)
+        session.commit()
+        return notification
+
+    @classmethod
+    def create_kyc_notification(cls, session, user_id: int, kyc_status: str):
+        """
+        Factory method for KYC status notifications.
+        kyc_status: 'pending', 'approved', 'rejected', 'additional_docs'
+        """
+        config = {
+            "pending": {
+                "type": NotificationType.INFO.value,
+                "title": "KYC Verification Submitted",
+                "message": "Your identity documents have been submitted and are under review. This usually takes 1-2 business days.",
+                "priority": NotificationPriority.NORMAL.value,
+            },
+            "approved": {
+                "type": NotificationType.SUCCESS.value,
+                "title": "KYC Verification Approved",
+                "message": "Your identity has been verified. You now have full access to all StocksCo features.",
+                "priority": NotificationPriority.HIGH.value,
+            },
+            "rejected": {
+                "type": NotificationType.DANGER.value,
+                "title": "KYC Verification Failed",
+                "message": "Your verification was unsuccessful. Please re-submit with valid documents.",
+                "priority": NotificationPriority.URGENT.value,
+            },
+            "additional_docs": {
+                "type": NotificationType.WARNING.value,
+                "title": "Additional Documents Required",
+                "message": "We need additional documents to complete your verification. Please check your KYC dashboard.",
+                "priority": NotificationPriority.HIGH.value,
+            },
+        }
+
+        cfg = config.get(kyc_status, config["pending"])
+
+        notification = cls(
+            user_id=user_id,
+            type=cfg["type"],
+            category=NotificationCategory.KYC.value,
+            priority=cfg["priority"],
+            title=cfg["title"],
+            message=cfg["message"],
+            action_text="Go to KYC",
+            action_url="/dashboard/kyc",
+            notification_metadata={"kyc_status": kyc_status}
+        )
+        session.add(notification)
+        session.commit()
+        return notification
+
     # Composite Indexes
     __table_args__ = (
         Index('idx_user_read_created', 'user_id', 'is_read', 'created_at'),
