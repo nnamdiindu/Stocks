@@ -1,10 +1,27 @@
 {% extends "landing/layouts/base.html" %}
 {% block styles %}
-<link rel="stylesheet" href="../../static/css/landing/contact-us.css">{% endblock %}
+<link rel="stylesheet" href="../../static/css/landing/contact-us.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.12/build/css/intlTelInput.css">
+{% endblock %}
 
 {% block content %}
 <!-- Contact Us Section -->
 <section class="py-5 contact-section rounded-4">
+    <div style="padding-top: 10px;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show"
+                role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
     <div class="container">
         <!-- Section Header -->
         <div class="text-center mb-5">
@@ -60,41 +77,36 @@
 
             <!-- Right Column: Contact Form and Social Links -->
             <div class="col-lg-6">
-                <form>
+                <form action="{{ url_for('main.contact_us') }}" method="post">
                     <!-- First Name -->
                     <div class="mb-3">
                         <label for="firstName" class="form-label">First name</label>
-                        <input type="text" class="form-control" id="firstName" placeholder="First name">
+                        <input type="text" class="form-control" id="firstName" placeholder="First name"
+                            name="first_name">
                     </div>
 
                     <!-- Email -->
                     <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" placeholder="yourcompany.com">
+                        <input type="email" class="form-control" id="email" placeholder="billykimber@email.com"
+                            name="email">
                     </div>
 
                     <!-- Phone Number -->
                     <div class="mb-3">
-                        <label for="phone" class="form-label">Phone number</label>
-                        <div class="input-group">
-                            <select class="form-select" style="max-width: 100px;">
-                                <option selected>US</option>
-                                <option>UK</option>
-                                <!-- <option>NG</option> -->
-                            </select>
-                            <input type="tel" class="form-control" id="phone" placeholder="+1(555) 000-0000">
-                        </div>
+                        <label for="tel" class="form-label text-muted small">Phone number</label>
+                        <input type="tel" class="form-control" id="tel" placeholder="(555) 000-0000" name="tel">
                     </div>
 
                     <!-- Message -->
                     <div class="mb-4">
                         <label for="message" class="form-label">Message</label>
-                        <textarea class="form-control" id="message" rows="5"
-                            placeholder="Leave us a message"></textarea>
+                        <textarea class="form-control" id="message" rows="5" placeholder="Leave us a message"
+                            name="message"></textarea>
                     </div>
 
                     <!-- Submit Button -->
-                    <button type="submit" class="btn btn-send mb-4">Send message</button>
+                    <button type="submit" class="btn-send mb-4">Send message</button>
 
                     <!-- Social Links -->
                     <div class="social-links d-flex gap-3 justify-content-center">
@@ -119,4 +131,21 @@
         </div>
     </div>
 </section>
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.12/build/js/intlTelInput.min.js"></script>
+
+{% block extra_js %}
+<script>
+    const input = document.querySelector("#tel");
+    const iti = window.intlTelInput(input, {
+        initialCountry: "us",
+        separateDialCode: true,
+        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.12/build/js/utils.js"
+    });
+
+    // Replace the input value with full international number before submission
+    document.getElementById('register').addEventListener('submit', function (e) {
+        input.value = iti.getNumber();
+    });
+</script>
+{% endblock %}
 {% endblock %}
