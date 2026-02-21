@@ -1,5 +1,7 @@
-from flask import render_template, Blueprint, request, flash, redirect, url_for
+from flask import render_template, Blueprint, request, flash, redirect, url_for, current_app
 from datetime import datetime
+from app.models import ContactMessage
+from app import db
 
 # Create blueprint
 main_bp = Blueprint("main", __name__)
@@ -26,14 +28,39 @@ def features():
 @main_bp.route("/contact-us", methods=["GET", "POST"])
 def contact_us():
     if request.method == "POST":
-        first_name = request.form.get("first_name")
-        phone_number = request.form.get("tel")
-        email = request.form.get("email")
-        message = request.form.get("message")
-        flash("Your message has been sent successfully.", "success")
+        first_name = request.form.get("first_name", "").strip()
+        phone_number = request.form.get("phone_number", "").strip()
+        email = request.form.get("email", "").strip()
+        category = request.form.get("category", "").strip()
+        message = request.form.get("message", "").strip()
 
-        print(first_name, phone_number, email, message)
+        # Validate
+        if not all([first_name, email, category, message]):
+            flash("Please fill in all required fields.", "danger")
+            return redirect(url_for("main.contact_us"))
+
+        # Save
+        try:
+            new_message = ContactMessage(
+                name=first_name,
+                phone=phone_number,
+                email=email,
+                category=category,
+                message=message
+            )
+            db.session.add(new_message)
+            db.session.commit()
+
+            # TODO: Send email notification to admin here
+
+            flash("Your message has been sent successfully.", "success")
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Contact form DB error: {e}")
+            flash("Something went wrong. Please try again.", "danger")
+
         return redirect(url_for("main.contact_us"))
+
     return render_template("landing/contact-us.html")
 
 @main_bp.route("/terms&conditions")
