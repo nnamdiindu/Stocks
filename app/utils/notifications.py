@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from sqlalchemy import select, update, func
 from app.database import db
-from app.models.notifications import (
+from app.models.notification import (
     Notification,
     NotificationPreference,
     NotificationType,
